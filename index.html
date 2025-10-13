@@ -18,7 +18,6 @@
       overflow: hidden;
     }
 
-    /* === PRELOADER === */
     #preloader {
       position: fixed;
       top: 0;
@@ -39,7 +38,6 @@
       object-fit: cover;
     }
 
-    /* === MAIN CONTENT === */
     #main-content {
       display: none;
       height: 100%;
@@ -53,11 +51,12 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
       object-fit: cover;
       z-index: -1;
       opacity: 0.6;
+      background: url('fallback.jpg') center/cover no-repeat;
     }
 
     h1 {
@@ -74,13 +73,29 @@
       text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
     }
 
+    /* Remove mobile video hiding! */
+    /* Optionally, you can add styles for very small screens, but don't hide the video */
     @media (max-width: 768px) {
       video.background-video {
-        display: none;
+        opacity: 0.7;
       }
-      body {
-        background: url('fallback.jpg') center/cover no-repeat;
-      }
+    }
+
+    /* Simple button for audio on mobile */
+    #audio-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+      padding: 12px 20px;
+      font-size: 1rem;
+      background: #222;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      cursor: pointer;
+      display: none;
     }
   </style>
 </head>
@@ -98,27 +113,25 @@
 
   <!-- === MAIN SITE CONTENT === -->
   <div id="main-content">
-    <video id="background-video" class="background-video" autoplay muted loop playsinline>
+    <video id="background-video" class="background-video" autoplay muted loop playsinline poster="fallback.jpg">
       <source src="" type="video/mp4">
     </video>
 
     <audio id="background-audio" loop>
       <source src="https://files.catbox.moe/k514n3.mp3" type="audio/mpeg">
     </audio>
-
+    <button id="audio-btn">Enable Audio</button>
   </div>
   <script>
-    /* ========== PRELOADER LOGIC ========== */
+    // PRELOADER LOGIC
     const preloader = document.getElementById('preloader');
     const mainContent = document.getElementById('main-content');
     const introVideo = document.getElementById('introVideo');
 
-    // Fade out at 9.5s
     setTimeout(() => {
       preloader.style.opacity = '0';
     }, 9500);
 
-    // Remove preloader and show main site at 10s
     setTimeout(() => {
       introVideo.pause();
       preloader.style.display = 'none';
@@ -126,7 +139,7 @@
       document.body.style.overflow = 'auto';
     }, 10000);
 
-    /* ========== MAIN BACKGROUND VIDEO + AUDIO ========== */
+    // MAIN BACKGROUND VIDEO + AUDIO
     const videos = [
       "https://files.catbox.moe/pdwp9z.mp4",
       "https://files.catbox.moe/lb8x4t.mp4"
@@ -137,18 +150,51 @@
     bgVideo.querySelector("source").src = randomVideo;
     bgVideo.load();
 
+    // AUDIO LOGIC FOR MOBILE
     const audio = document.getElementById("background-audio");
+    const audioBtn = document.getElementById("audio-btn");
 
-    const playAudio = () => {
-      audio.play().catch(err => console.log("Autoplay blocked:", err));
-      document.removeEventListener("click", playAudio);
-      document.removeEventListener("touchstart", playAudio);
-    };
+    // Only show the audio button if on mobile
+    function isMobile() {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
 
-    document.addEventListener("click", playAudio);
-    document.addEventListener("touchstart", playAudio);
+    function tryAutoplayAudio() {
+      audio.play().then(() => {
+        audioBtn.style.display = "none";
+      }).catch(() => {
+        // Show button if autoplay fails
+        audioBtn.style.display = "block";
+      });
+    }
+
+    // Try autoplay after preloader
+    setTimeout(() => {
+      tryAutoplayAudio();
+    }, 10100);
+
+    // User gesture
+    audioBtn.addEventListener('click', function() {
+      audio.play();
+      audioBtn.style.display = "none";
+    });
+
+    // Also allow click anywhere
+    document.addEventListener("click", function() {
+      audio.play().catch(() => {});
+      audioBtn.style.display = "none";
+    });
+
+    document.addEventListener("touchstart", function() {
+      audio.play().catch(() => {});
+      audioBtn.style.display = "none";
+    });
+
+    // Show button for mobile
+    if (isMobile()) {
+      audioBtn.style.display = "block";
+    }
   </script>
 
 </body>
 </html>
-
