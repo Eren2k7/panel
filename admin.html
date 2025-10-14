@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <link rel="icon" type="image/png" href="logo.fw.jpeg">
   <title>Ad Manager — Admin (URL Mode)</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
@@ -294,5 +295,35 @@
 
     renderAdList();
   </script>
+  <style>
+    body {
+      background: #111;
+      margin: 0;
+      height: 100vh;
+    }
+  
+    .glow-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 15px 40px;
+      font-size: 18px;
+      color: #fff;
+      background: #007bff; /* Blue inside */
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 15px #007bff, 0 0 30px #007bff;
+      transition: 0.3s;
+    }
+  
+    .glow-btn:hover {
+      box-shadow: 0 0 25px #00a2ff, 0 0 50px #00a2ff;
+      transform: scale(1.05);
+    }
+  </style>
+    <a href="https://catbox.moe/">
+      <button class="glow-btn" title="catbox">Converter</button>
+    </a>
 </body>
 </html>

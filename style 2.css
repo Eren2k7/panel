@@ -25,7 +25,7 @@ header {
 
 h1 {
     font-size: 2.5rem;
-    color: red;
+    color: rgb(84, 38, 38);
 }
 
 /* Main Content Styles */
@@ -73,7 +73,7 @@ button img {
 
 /* General Images */
 img {
-    max-width: 100%;
+    max-width: 30%;
     height: auto;
     border: 5px solid black;
     border-radius: 10px;

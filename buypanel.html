@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #111;
+    margin: 0;
+  }
+
+  .glow-btn {
+    padding: 15px 40px;
+    font-size: 18px;
+    color: #fff;
+    background: #007bff; /* Blue inside */
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 0 15px #007bff, 0 0 30px #007bff;
+    transition: 0.3s;
+  }
+
+  .glow-btn:hover {
+    box-shadow: 0 0 25px #00a2ff, 0 0 50px #00a2ff;
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body>
+
+<a href="dailyclaim.html">
+  <button class="glow-btn" title="Hello World!">Sample Button</button>
+</a>
+
+</body>
+</html>

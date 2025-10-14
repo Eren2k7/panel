@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="logo.fw.png">
+  <link rel="icon" type="image/png" href="logo.fw.jpeg">
 	<link rel="stylesheet" href="style.css">
   <title>Login & Signup System</title>
   <style>
@@ -46,15 +46,14 @@
 
     img.logo {
       margin-top: 20px;
-      width: 120px;
-      border-radius: 50%;
-      box-shadow: 0 0 20px cyan;
+      width: 200px;
+      border-radius: 20%;
     }
 
     h1 {
       margin-top: 15px;
       font-size: 2.5rem;
-      color: cyan;
+      color: red;
       text-shadow: 0 0 10px cyan;
     }
 
@@ -100,7 +99,7 @@
     }
 
     button {
-      background: linear-gradient(45deg, #00c6ff, #0072ff);
+      background: linear-gradient(45deg, red, #0072ff);
       color: white;
       cursor: pointer;
       font-weight: bold;
@@ -108,20 +107,30 @@
     }
 
     button:hover {
-      background: linear-gradient(45deg, #0072ff, #00c6ff);
-      box-shadow: 0 0 15px cyan;
+      background: linear-gradient(45deg, #ad4012, #28860b);
+      box-shadow: 0 0 15px rgb(2, 36, 208);
       transform: scale(1.05);
     }
 
     a {
-      color: cyan;
+      color: rgb(50, 180, 17);
       cursor: pointer;
       font-size: 0.9rem;
       transition: color 0.3s ease;
     }
 
+    .form-container {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 20px;
+      border-radius: 10px;
+      width: 300px;
+      margin: 40px auto;
+      opacity: 0;
+      transform: scale(0.9);
+      animation: fadeIn 0.8s ease forwards;
+    }
     a:hover {
-      color: #00f7ff;
+      color: #141a8e;
       text-decoration: underline;
     }
 
@@ -134,7 +143,7 @@
 
   <!-- Logo -->
   <img src="jujutsu.png" alt="logo" class="logo">
-  <h1>Welcome</h1>
+  <h1>Welcome Admins</h1>
 
   <!-- Sign Up Form -->
   <div class="form-container" id="signup-form">
@@ -289,6 +298,13 @@
       }
     }
   </script>
+
+<p>
+	
+  <a href="log in.html">
+    <img style="height: auto; width: 50px; border-color: #0f0f0f; border-radius: 20px;" src="left.fw.png" alt="Premium Link">
+  </a>
+<p style="color: black;">User</p>
+</p>
 </body>
 </html>
-
