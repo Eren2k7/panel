@@ -1,8 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="logo.fw.png">
   <title>Panel</title>
   <style>
     * {
@@ -172,6 +174,156 @@
     audio.addEventListener("canplaythrough", playAudio);
   </script>
 
+<!-- ===== Centered Ads Overlay ===== -->
+<div id="center-ad-wrapper" style="display:none;">
+  <div id="center-ad" role="dialog" aria-label="Advertisement">
+    <button id="ad-close" aria-label="Close ad">✕</button>
+    <div class="ad-viewport">
+      <div class="ad-track" id="ad-track"></div>
+    </div>
+    <div id="ad-dots"></div>
+  </div>
+</div>
+
+
+
+<style>
+#center-ad-wrapper { position: fixed; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:9999; }
+#center-ad { width:min(92vw,760px); background:#0f1724; color:#fff; border-radius:12px; box-shadow:0 10px 30px rgba(2,6,23,0.6); overflow:hidden; pointer-events:auto; position:relative; }
+#ad-close { position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.35); border:none; color:#fff; font-size:18px; padding:6px 9px; border-radius:6px; cursor:pointer; z-index:10; }
+.ad-viewport { overflow:hidden; }
+.ad-track { display:flex; transition:transform 450ms ease-in-out; }
+.ad-slide { min-width:100%; padding:20px; display:flex; align-items:center; justify-content:center; gap:14px; }
+.ad-slide h3{ margin:0 0 8px 0; font-size:20px; }
+.ad-slide p{ margin:0; font-size:15px; color:#dfeeff; }
+.ad-slide img{ max-width:100%; border-radius:8px; }
+.ad-slide video{ width:100%; height:auto; border-radius:8px; display:block; }
+#ad-dots{ display:flex; gap:8px; justify-content:center; padding:10px 0; background:linear-gradient(to bottom, rgba(0,0,0,0.0), rgba(0,0,0,0.06)); }
+.ad-dot{ width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,0.35); cursor:pointer; }
+.ad-dot.active{ background:#ffd166; }
+
+</style>
+
+<script src="ads.js"></script>
+<script>
+(function(){
+  const wrapper = document.getElementById('center-ad-wrapper');
+  const track = document.getElementById('ad-track');
+  const dots = document.getElementById('ad-dots');
+  const closeBtn = document.getElementById('ad-close');
+
+  let ads = [];
+  try { ads = AdStore.loadAds(); } catch(e) { ads = []; }
+
+  if (!ads || !ads.length) {
+    wrapper.style.display = 'none';
+    return;
+  }
+
+  // Optional: limit to max 5 ads displayed
+  const MAX_DISPLAY = 5;
+  if (ads.length > MAX_DISPLAY) ads = ads.slice(0, MAX_DISPLAY);
+
+  function isYouTubeUrl(url) { return /youtube\.com|youtu\.be/.test(url); }
+  function getYouTubeEmbedId(url) {
+    const m = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+    return m ? m[1] : null;
+  }
+
+  function buildSlides(){
+    track.innerHTML = '';
+    ads.forEach(ad => {
+      const slide = document.createElement('div'); slide.className = 'ad-slide';
+
+      if (ad.type === 'image') {
+        slide.innerHTML = `<img src="${ad.payload}" alt="${escapeHtml(ad.meta.title || 'Ad')}">`;
+        if (ad.meta.link) {
+          const a = document.createElement('a'); a.href = ad.meta.link; a.target = '_blank'; a.rel = 'noreferrer';
+          a.style.position = 'absolute'; a.style.inset = '0'; slide.appendChild(a);
+        }
+      } else if (ad.type === 'video') {
+        if (isYouTubeUrl(ad.payload)) {
+          const id = getYouTubeEmbedId(ad.payload);
+          if (id) {
+            slide.innerHTML = `<iframe width="100%" height="360" src="https://www.youtube.com/embed/${id}?rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+          } else {
+            slide.innerHTML = `<p>Invalid YouTube link</p>`;
+          }
+        } else {
+          slide.innerHTML = `<video playsinline muted preload="metadata" ${ad.meta.link ? '' : 'controls'}><source src="${ad.payload}"></video>`;
+          if (ad.meta.link) {
+            const a = document.createElement('a'); a.href = ad.meta.link; a.target = '_blank'; a.rel = 'noreferrer';
+            a.style.position = 'absolute'; a.style.inset = '0'; slide.appendChild(a);
+          }
+        }
+      } else { // text
+        const title = ad.meta.title ? `<h3>${escapeHtml(ad.meta.title)}</h3>` : '';
+        const body = `<p>${escapeHtml(ad.payload)}</p>`;
+        const linkHtml = ad.meta.link ? `<p><a href="${escapeHtml(ad.meta.link)}" target="_blank" rel="noreferrer">${escapeHtml(ad.meta.link)}</a></p>` : '';
+        slide.innerHTML = `<div style="text-align:center; width:100%;">${title}${body}${linkHtml}</div>`;
+      }
+
+      track.appendChild(slide);
+    });
+    wrapper.style.display = 'flex';
+  }
+
+  function buildDots() {
+    dots.innerHTML = '';
+    for (let i = 0; i < ads.length; i++) {
+      const d = document.createElement('div'); d.className = 'ad-dot' + (i === 0 ? ' active' : '');
+      d.dataset.index = i;
+      d.addEventListener('click', () => goToSlide(i));
+      dots.appendChild(d);
+    }
+  }
+
+  let current = 0;
+  const INTERVAL = 4500;
+  let timer = null;
+  let paused = false;
+
+  function updateSlide() {
+    track.style.transform = `translateX(${-current * 100}%)`;
+    [...dots.children].forEach((dot, i) => dot.classList.toggle('active', i === current));
+    // handle video play/pause for direct video elements
+    Array.from(track.children).forEach((s, i) => {
+      const v = s.querySelector('video');
+      if (v) {
+        if (i === current) { try { v.currentTime = 0; v.play().catch(()=>{}); } catch(e){} }
+        else { try { v.pause(); } catch(e){} }
+      }
+    });
+  }
+
+  function nextSlide(){ current = (current + 1) % ads.length; updateSlide(); }
+  function goToSlide(i){ current = i % ads.length; updateSlide(); resetTimer(); }
+
+  function startTimer(){ if (timer) clearInterval(timer); timer = setInterval(()=>{ if(!paused) nextSlide(); }, INTERVAL); }
+  function resetTimer(){ if (timer) { clearInterval(timer); startTimer(); } }
+
+  // Pause on hover
+  wrapper.addEventListener('mouseenter', () => paused = true);
+  wrapper.addEventListener('mouseleave', () => paused = false);
+
+  // Close button hides overlay until refresh
+  closeBtn.addEventListener('click', () => {
+    Array.from(track.querySelectorAll('video')).forEach(v => { try { v.pause(); } catch(e){} });
+    if (timer) { clearInterval(timer); timer = null; }
+    wrapper.style.display = 'none';
+  });
+
+  // init
+  buildSlides();
+  buildDots();
+  updateSlide();
+  startTimer();
+
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+})();
+</script>
+
+
+
 </body>
 </html>
-
