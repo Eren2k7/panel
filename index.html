@@ -151,14 +151,25 @@
 
     const audio = document.getElementById("background-audio");
 
+    // Ensure audio plays on all browsers
     const playAudio = () => {
-      audio.play().catch(err => console.log("Autoplay blocked:", err));
-      document.removeEventListener("click", playAudio);
-      document.removeEventListener("touchstart", playAudio);
+      audio.play().catch(err => {
+        console.log("Autoplay blocked. Waiting for user interaction.");
+        document.addEventListener("click", playAudioOnce);
+        document.addEventListener("touchstart", playAudioOnce);
+      });
     };
 
-    document.addEventListener("click", playAudio);
-    document.addEventListener("touchstart", playAudio);
+    const playAudioOnce = () => {
+      audio.play().then(() => {
+        console.log("Audio playback started after user interaction.");
+        document.removeEventListener("click", playAudioOnce);
+        document.removeEventListener("touchstart", playAudioOnce);
+      }).catch(err => console.log("Audio playback failed:", err));
+    };
+
+    // Start audio playback when the page is ready
+    audio.addEventListener("canplaythrough", playAudio);
   </script>
 
 </body>
