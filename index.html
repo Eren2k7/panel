@@ -5,29 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Panel</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     html, body {
       height: 100%;
       width: 100%;
       font-family: 'Poppins', sans-serif;
       overflow: hidden;
+      background: black;
     }
 
+    /* === PRELOADER === */
     #preloader {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       background: black;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       z-index: 9999;
       transition: opacity 0.5s ease;
     }
@@ -38,25 +32,19 @@
       object-fit: cover;
     }
 
+    /* === MAIN CONTENT === */
     #main-content {
       display: none;
-      height: 100%;
-      width: 100%;
+      height: 100%; width: 100%;
       overflow-x: hidden;
-      color: white;
-      text-align: center;
+      color: white; text-align: center;
     }
 
     video.background-video {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
       object-fit: cover;
-      z-index: -1;
-      opacity: 0.6;
-      background: url('fallback.jpg') center/cover no-repeat;
+      z-index: -1; opacity: 0.6;
     }
 
     h1 {
@@ -67,134 +55,95 @@
       margin-top: 12%;
     }
 
-    p {
-      font-size: clamp(1rem, 3vw, 1.5rem);
-      margin-top: 1rem;
-      text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
-    }
-
-    /* Remove mobile video hiding! */
-    /* Optionally, you can add styles for very small screens, but don't hide the video */
     @media (max-width: 768px) {
-      video.background-video {
-        opacity: 0.7;
-      }
+      video.background-video { display: none; }
+      body { background: url('fallback.jpg') center/cover no-repeat; }
     }
 
-    /* Simple button for audio on mobile */
-    #audio-btn {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      z-index: 10;
-      padding: 12px 20px;
-      font-size: 1rem;
-      background: #222;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      cursor: pointer;
+    /* Mobile overlay */
+    #startOverlay {
       display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      font-size: 1.5rem;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      text-align: center;
+    }
+    #startOverlay.show {
+      display: flex;
     }
   </style>
 </head>
 <body>
   <header>
-    <h1 style="text-align: center; font-family: Courier New;">ErenXGolden Panel's Site</h1>
+    <h1>ErenXGolden Panel's Site</h1>
   </header>
 
-  <!-- === PRELOADER VIDEO === -->
+  <!-- === PRELOADER === -->
   <div id="preloader">
     <video id="introVideo" autoplay muted loop playsinline>
       <source src="https://files.catbox.moe/hdm9jl.mp4" type="video/mp4">
     </video>
   </div>
 
-  <!-- === MAIN SITE CONTENT === -->
+  <!-- === MAIN CONTENT === -->
   <div id="main-content">
-    <video id="background-video" class="background-video" autoplay muted loop playsinline poster="fallback.jpg">
+    <video id="background-video" class="background-video" autoplay muted loop playsinline>
       <source src="" type="video/mp4">
     </video>
 
     <audio id="background-audio" loop>
       <source src="https://files.catbox.moe/k514n3.mp3" type="audio/mpeg">
     </audio>
-    <button id="audio-btn">Enable Audio</button>
   </div>
+
+  <!-- Tap to Start (for mobile) -->
+  <div id="startOverlay">
+    <p>Tap to start 🔊</p>
+  </div>
+
   <script>
-    // PRELOADER LOGIC
     const preloader = document.getElementById('preloader');
     const mainContent = document.getElementById('main-content');
     const introVideo = document.getElementById('introVideo');
+    const audio = document.getElementById('background-audio');
+    const overlay = document.getElementById('startOverlay');
+    const bgVideo = document.getElementById('background-video');
 
-    setTimeout(() => {
-      preloader.style.opacity = '0';
-    }, 9500);
+    // Choose random background video
+    const videos = [
+      "https://files.catbox.moe/pdwp9z.mp4",
+      "https://files.catbox.moe/lb8x4t.mp4"
+    ];
+    bgVideo.querySelector("source").src = videos[Math.floor(Math.random() * videos.length)];
+    bgVideo.load();
 
+    // Preloader timing
+    setTimeout(() => preloader.style.opacity = '0', 9500);
     setTimeout(() => {
       introVideo.pause();
       preloader.style.display = 'none';
       mainContent.style.display = 'block';
       document.body.style.overflow = 'auto';
+      // If on mobile, show start overlay
+      if (/Mobi|Android/i.test(navigator.userAgent)) {
+        overlay.classList.add('show');
+      } else {
+        // Desktop: play audio immediately
+        audio.play().catch(e => console.log("Desktop autoplay blocked:", e));
+      }
     }, 10000);
 
-    // MAIN BACKGROUND VIDEO + AUDIO
-    const videos = [
-      "https://files.catbox.moe/pdwp9z.mp4",
-      "https://files.catbox.moe/lb8x4t.mp4"
-    ];
-
-    const randomVideo = videos[Math.floor(Math.random() * videos.length)];
-    const bgVideo = document.getElementById("background-video");
-    bgVideo.querySelector("source").src = randomVideo;
-    bgVideo.load();
-
-    // AUDIO LOGIC FOR MOBILE
-    const audio = document.getElementById("background-audio");
-    const audioBtn = document.getElementById("audio-btn");
-
-    // Only show the audio button if on mobile
-    function isMobile() {
-      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    }
-
-    function tryAutoplayAudio() {
-      audio.play().then(() => {
-        audioBtn.style.display = "none";
-      }).catch(() => {
-        // Show button if autoplay fails
-        audioBtn.style.display = "block";
-      });
-    }
-
-    // Try autoplay after preloader
-    setTimeout(() => {
-      tryAutoplayAudio();
-    }, 10100);
-
-    // User gesture
-    audioBtn.addEventListener('click', function() {
-      audio.play();
-      audioBtn.style.display = "none";
+    // Tap to start audio (for mobile)
+    overlay.addEventListener('click', () => {
+      overlay.classList.remove('show');
+      audio.play().catch(e => console.log("Audio play error:", e));
+      bgVideo.play().catch(e => console.log("Video play error:", e));
     });
-
-    // Also allow click anywhere
-    document.addEventListener("click", function() {
-      audio.play().catch(() => {});
-      audioBtn.style.display = "none";
-    });
-
-    document.addEventListener("touchstart", function() {
-      audio.play().catch(() => {});
-      audioBtn.style.display = "none";
-    });
-
-    // Show button for mobile
-    if (isMobile()) {
-      audioBtn.style.display = "block";
-    }
   </script>
-
 </body>
 </html>
