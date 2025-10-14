@@ -71,7 +71,6 @@
     </div>
   </div>
 
-  <script src="ads.js"></script>
   <script>
     const adTypeEl = document.getElementById('ad-type');
     const urlInput = document.getElementById('url-input');
@@ -85,6 +84,42 @@
     const clearBtn = document.getElementById('clear-btn');
     const previewBox = document.getElementById('preview');
     const adListEl = document.getElementById('ad-list');
+
+    const AdStore = {
+      loadAds: () => {
+        try {
+          const ads = JSON.parse(localStorage.getItem('ads')) || [];
+          return ads;
+        } catch (e) {
+          console.error('Failed to load ads from localStorage:', e);
+          return [];
+        }
+      },
+      saveAds: (ads) => {
+        try {
+          localStorage.setItem('ads', JSON.stringify(ads));
+        } catch (e) {
+          console.error('Failed to save ads to localStorage:', e);
+        }
+      },
+      createAd: (type, payload, meta = {}) => {
+        return {
+          id: Date.now(),
+          type,
+          payload,
+          meta,
+          createdAt: new Date().toISOString(),
+        };
+      },
+      deleteAd: (id) => {
+        const ads = AdStore.loadAds();
+        const updatedAds = ads.filter((ad) => ad.id !== id);
+        AdStore.saveAds(updatedAds);
+      },
+      clearAllAds: () => {
+        localStorage.removeItem('ads');
+      },
+    };
 
     function switchMediaUI() {
       const t = adTypeEl.value;
@@ -136,10 +171,8 @@
         return;
       }
 
-      // video preview (MP4 or YouTube embed)
       if (type === 'video') {
         if (isYouTubeUrl(url)) {
-          // embed youtube
           const idMatch = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
           const vId = idMatch ? idMatch[1] : null;
           if (vId) {
@@ -157,9 +190,18 @@
             return;
           }
         } else {
-          // assume direct MP4 or playable link
+          const isMp4 = /\.(mp4|webm|ogg)(\?.*)?$/i.test(url);
+          if (!isMp4) {
+            previewBox.textContent = 'URL does not look like a valid MP4 link';
+            return;
+          }
+
           const v = document.createElement('video');
-          v.controls = true; v.src = url; v.style.maxWidth = '100%'; v.onerror = () => previewBox.textContent = 'Video failed to load (check URL)';
+          v.controls = true;
+          v.src = url;
+          v.style.maxWidth = '100%';
+          v.onerror = () =>
+            (previewBox.textContent = 'Video failed to load (check URL or file format)');
           previewBox.appendChild(v);
           return;
         }
@@ -182,27 +224,28 @@
         return;
       }
 
-      // image or video (URL)
       const url = urlInput.value.trim();
       if (!url) { alert('Enter a URL for image/video'); return; }
 
-      // basic validation: image extensions or youtube or mp4
       const isImg = /\.(jpg|jpeg|png|webp|gif|svg)(\?.*)?$/i.test(url);
       const isMp4 = /\.(mp4|webm|ogg)(\?.*)?$/i.test(url);
       const isYt = isYouTubeUrl(url);
 
       if (type === 'image' && !isImg) {
-        if (!confirm('URL does not look like an image (jpg/png/webp). Save anyway?')) {}
+        if (!confirm('URL does not look like an image (jpg/png/webp). Save anyway?')) {
+          return;
+        }
       }
       if (type === 'video' && !(isMp4 || isYt)) {
-        if (!confirm('URL does not look like a direct video or YouTube link. Save anyway?')) {}
+        if (!confirm('URL does not look like a direct video or YouTube link. Save anyway?')) {
+          return;
+        }
       }
 
       const ad = AdStore.createAd(type, url, { title, link });
       const ads = AdStore.loadAds(); ads.push(ad); AdStore.saveAds(ads);
       renderAdList(); alert('Ad saved');
 
-      // reset inputs
       urlInput.value = ''; textInput.value = ''; adTitle.value = ''; adLink.value = '';
       previewBox.innerHTML = 'Preview will appear here';
     });
