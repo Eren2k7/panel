@@ -12,16 +12,19 @@
       width: 100%;
       font-family: 'Poppins', sans-serif;
       overflow: hidden;
-      background: black;
     }
 
     /* === PRELOADER === */
     #preloader {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       background: black;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       z-index: 9999;
       transition: opacity 0.5s ease;
     }
@@ -35,16 +38,22 @@
     /* === MAIN CONTENT === */
     #main-content {
       display: none;
-      height: 100%; width: 100%;
+      height: 100%;
+      width: 100%;
       overflow-x: hidden;
-      color: white; text-align: center;
+      color: white;
+      text-align: center;
     }
 
     video.background-video {
-      position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
-      z-index: -1; opacity: 0.6;
+      z-index: -1;
+      opacity: 0.6;
     }
 
     h1 {
@@ -55,94 +64,84 @@
       margin-top: 12%;
     }
 
-    @media (max-width: 768px) {
-      video.background-video { display: none; }
-      body { background: url('fallback.jpg') center/cover no-repeat; }
+    p {
+      font-size: clamp(1rem, 3vw, 1.5rem);
+      margin-top: 1rem;
+      text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
     }
 
-    /* Mobile overlay */
-    #startOverlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.85);
-      color: white;
-      font-size: 1.5rem;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-      text-align: center;
-    }
-    #startOverlay.show {
-      display: flex;
+    @media (max-width: 768px) {
+      video.background-video {
+        display: none;
+      }
+      body {
+        background: url('fallback.jpg') center/cover no-repeat;
+      }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>ErenXGolden Panel's Site</h1>
+    <h1 style="text-align: center; font-family: Courier New;">ErenXGolden Panel's Site</h1>
   </header>
 
-  <!-- === PRELOADER === -->
+  <!-- === PRELOADER VIDEO === -->
   <div id="preloader">
     <video id="introVideo" autoplay muted loop playsinline>
       <source src="https://files.catbox.moe/hdm9jl.mp4" type="video/mp4">
     </video>
   </div>
 
-  <!-- === MAIN CONTENT === -->
+  <!-- === MAIN SITE CONTENT === -->
   <div id="main-content">
     <video id="background-video" class="background-video" autoplay muted loop playsinline>
       <source src="" type="video/mp4">
     </video>
 
-    <audio id="background-audio" loop>
+    <audio id="background-audio" autoplay loop muted>
       <source src="https://files.catbox.moe/k514n3.mp3" type="audio/mpeg">
     </audio>
   </div>
 
-  <!-- Tap to Start (for mobile) -->
-  <div id="startOverlay">
-    <p>Tap to start 🔊</p>
-  </div>
-
   <script>
+    /* ========== PRELOADER LOGIC ========== */
     const preloader = document.getElementById('preloader');
     const mainContent = document.getElementById('main-content');
     const introVideo = document.getElementById('introVideo');
-    const audio = document.getElementById('background-audio');
-    const overlay = document.getElementById('startOverlay');
-    const bgVideo = document.getElementById('background-video');
 
-    // Choose random background video
-    const videos = [
-      "https://files.catbox.moe/pdwp9z.mp4",
-      "https://files.catbox.moe/lb8x4t.mp4"
-    ];
-    bgVideo.querySelector("source").src = videos[Math.floor(Math.random() * videos.length)];
-    bgVideo.load();
-
-    // Preloader timing
-    setTimeout(() => preloader.style.opacity = '0', 9500);
+    setTimeout(() => { preloader.style.opacity = '0'; }, 9500);
     setTimeout(() => {
       introVideo.pause();
       preloader.style.display = 'none';
       mainContent.style.display = 'block';
       document.body.style.overflow = 'auto';
-      // If on mobile, show start overlay
-      if (/Mobi|Android/i.test(navigator.userAgent)) {
-        overlay.classList.add('show');
-      } else {
-        // Desktop: play audio immediately
-        audio.play().catch(e => console.log("Desktop autoplay blocked:", e));
-      }
     }, 10000);
 
-    // Tap to start audio (for mobile)
-    overlay.addEventListener('click', () => {
-      overlay.classList.remove('show');
-      audio.play().catch(e => console.log("Audio play error:", e));
-      bgVideo.play().catch(e => console.log("Video play error:", e));
+    /* ========== MAIN BACKGROUND VIDEO + AUDIO ========== */
+    const videos = [
+      "https://files.catbox.moe/pdwp9z.mp4",
+      "https://files.catbox.moe/lb8x4t.mp4"
+    ];
+
+    const randomVideo = videos[Math.floor(Math.random() * videos.length)];
+    const bgVideo = document.getElementById("background-video");
+    bgVideo.querySelector("source").src = randomVideo;
+    bgVideo.load();
+    bgVideo.play().catch(()=>{});
+
+    const audio = document.getElementById("background-audio");
+
+    // Try to autoplay audio muted first, then unmute
+    window.addEventListener('load', () => {
+      audio.play().catch(() => {
+        console.log("Audio autoplay blocked initially.");
+      });
+
+      // Gradually unmute audio after a few seconds
+      setTimeout(() => {
+        audio.muted = false;
+        audio.volume = 0.4; // optional: reduce volume for smoother start
+      }, 3000);
     });
   </script>
 </body>
