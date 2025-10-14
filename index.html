@@ -203,6 +203,10 @@
     <video id="background-video" class="background-video" autoplay muted loop playsinline>
       <source src="" type="video/mp4">
     </video>
+
+    <audio id="background-audio" loop>
+      <source src="https://files.catbox.moe/630st2.mp3" type="audio/mpeg">
+    </audio>
   </div>
 
   <!-- Centered Ads Overlay -->
@@ -232,6 +236,46 @@
       mainContent.style.display = 'block';
       document.body.style.overflow = 'auto';
     }, 10000);
+
+    /* Background Video */
+    const videos = [
+      "https://files.catbox.moe/pdwp9z.mp4",
+      "https://files.catbox.moe/lb8x4t.mp4"
+    ];
+
+    const randomVideo = videos[Math.floor(Math.random() * videos.length)];
+    const bgVideo = document.getElementById("background-video");
+    bgVideo.querySelector("source").src = randomVideo;
+    bgVideo.setAttribute("playsinline", "true");
+    bgVideo.setAttribute("muted", "true");
+    bgVideo.setAttribute("autoplay", "true");
+    bgVideo.setAttribute("loop", "true");
+    bgVideo.load();
+
+    bgVideo.onerror = () => {
+      console.error("Background video failed to load.");
+    };
+
+    /* Background Audio */
+    const audio = document.getElementById("background-audio");
+
+    const playAudio = () => {
+      audio.play().catch(err => {
+        console.log("Autoplay blocked. Waiting for user interaction.");
+        document.addEventListener("click", playAudioOnce);
+        document.addEventListener("touchstart", playAudioOnce);
+      });
+    };
+
+    const playAudioOnce = () => {
+      audio.play().then(() => {
+        console.log("Audio playback started after user interaction.");
+        document.removeEventListener("click", playAudioOnce);
+        document.removeEventListener("touchstart", playAudioOnce);
+      }).catch(err => console.log("Audio playback failed:", err));
+    };
+
+    audio.addEventListener("canplaythrough", playAudio);
 
     /* Centered Ads Overlay */
     const AdStore = {
