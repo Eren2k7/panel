@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <link rel="icon" type="image/png" href="logo.fw.jpeg">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel's Site</title>
+  <title>ErenXGolden Panel's Site</title>
   <style>
     /* General Styles */
     * {
@@ -67,7 +66,7 @@
       text-align: center;
       font-size: clamp(2rem, 5vw, 4rem);
       text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
-      margin-top: 12%;
+      margin: 0;
     }
 
     p {
@@ -185,11 +184,40 @@
         padding: 4px 6px;
       }
     }
+
+    /* Button Wrapper */
+    .btn-wrapper {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      gap: 20px;
+      margin: 0;
+    }
+
+    .glow-btn {
+      width: 200px;
+      height: 50px;
+      font-size: 25px;
+      color: #080101;
+      background: #007bff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 15px #007bff, 0 0 30px #007bff;
+      transition: 0.3s;
+    }
+
+    .glow-btn:hover {
+      box-shadow: 0 0 25px #00a2ff, 0 0 50px #00a2ff;
+      transform: scale(1.05);
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>ErenXGolden Panel's Site</h1>
+    <h1>Welcome to ErenXGolden Panel's Site</h1>
   </header>
 
   <!-- Preloader -->
@@ -220,45 +248,15 @@
       <div id="ad-dots"></div>
     </div>
   </div>
-<h1>Welcome to ErenXGolden Panel's Site</h1>
-<style>
-  .btn-wrapper {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    gap: 40px; /* 10px demarcation between buttons */
-    margin: 0;
-  }
 
-  .glow-btn {
-    width: 200px; /* Button width */
-    height: 50px; /* Button height */
-    font-size: 25px;
-    color: #080101;
-    background: #007bff; /* Blue inside */
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 0 15px #007bff, 0 0 30px #007bff;
-    transition: 0.3s;
-  }
-
-  .glow-btn:hover {
-    box-shadow: 0 0 25px #00a2ff, 0 0 50px #00a2ff;
-    transform: scale(1.05);
-  }
-</style>
-
-<div class="btn-wrapper">
-  <a href="dailyclaim.html">
-    <button class="glow-btn" title="Hello World!">dailyclaim</button>
-  </a>
-  <a href="buypanel.html">
-    <button class="glow-btn" title="Hello World!">Buy Panel</button>
-  </a>
-</div>
+  <div class="btn-wrapper">
+    <a href="dailyclaim.html">
+      <button class="glow-btn" title="Daily Claim">Daily Claim</button>
+    </a>
+    <a href="buypanel.html">
+      <button class="glow-btn" title="Buy Panel">Buy Panel</button>
+    </a>
+  </div>
 
   <script>
     /* Preloader Logic */
@@ -348,11 +346,11 @@
         return;
       }
 
-      const MAX_DISPLAY = 5;
+      const MAX_DISPLAY = 2;
       if (ads.length > MAX_DISPLAY) ads = ads.slice(0, MAX_DISPLAY);
 
       let current = 0;
-      const INTERVAL = 5000;
+      const INTERVAL = 2000;
       let timer = null;
 
       function buildSlides() {
