@@ -1,0 +1,51 @@
+body {
+  font-family: "Trebuchet MS", sans-serif;
+  background: url("jujutsu-bg.jpg") no-repeat center center fixed;
+  background-size: cover;
+  color: #eee;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  /* ❌ removed overflow: hidden */
+}
+
+/* Smooth slow gradient */
+body::before {
+  content: "";
+  position: absolute; /* ✅ change to absolute */
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(-45deg, rgba(0, 198, 255, 0.25), rgba(0, 114, 255, 0.25), rgba(0, 255, 200, 0.25), rgba(0, 100, 255, 0.25));
+  background-size: 400% 400%;
+  animation: gradientSmooth 18s ease-in-out infinite;
+  z-index: -2;
+  pointer-events: none; /* ✅ make sure it doesn't block clicks */
+}
+
+/* Energetic fast gradient */
+body::after {
+  content: "";
+  position: absolute; /* ✅ also absolute */
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(45deg, rgba(255, 0, 150, 0.15), rgba(0, 255, 255, 0.15), rgba(0, 150, 255, 0.15));
+  background-size: 300% 300%;
+  animation: gradientFast 6s linear infinite;
+  mix-blend-mode: screen;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Animations */
+@keyframes gradientSmooth {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes gradientFast {
+  0% { background-position: 50% 0%; }
+  50% { background-position: 50% 100%; }
+  100% { background-position: 50% 0%; }
+}
