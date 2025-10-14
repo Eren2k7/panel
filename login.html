@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="logo.fw.png">
+	<link rel="stylesheet" href="style.css">
+  <title>Login & Signup System</title>
+  <style>
+    body {
+      font-family: "Trebuchet MS", sans-serif;
+      background: linear-gradient(-45deg, #0f0f0f, #1a1a2e, #16213e, #0f3460);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: #eee;
+      text-align: center;
+      transition: all 0.5s ease-in-out;
+      min-height: 100vh;
+    }
+.admins {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px; /* spacing between profiles */
+  flex-wrap: nowrap; /* prevent stacking */
+  overflow-x: auto; /* allow horizontal scroll if too small */
+}
+
+.admin-card {
+  flex: 0 0 auto; /* keep fixed width, don’t shrink */
+  width: 150px; /* adjust size for mobile */
+  background: rgba(0,0,0,0.7);
+  border-radius: 15px;
+  padding: 15px;
+  text-align: center;
+  color: #fff;
+  position: relative;
+  animation: rainbowGlow 3s linear infinite;
+}
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    img.logo {
+      margin-top: 20px;
+      width: 120px;
+      border-radius: 50%;
+      box-shadow: 0 0 20px cyan;
+    }
+
+    h1 {
+      margin-top: 15px;
+      font-size: 2.5rem;
+      color: cyan;
+      text-shadow: 0 0 10px cyan;
+    }
+
+    .form-container {
+      background: rgba(0, 0, 0, 0.85);
+      padding: 25px;
+      border-radius: 15px;
+      width: 320px;
+      margin: 30px auto;
+      opacity: 0;
+      transform: scale(0.9);
+      animation: fadeIn 0.8s ease forwards;
+      box-shadow: 0 0 20px rgba(0,255,255,0.3);
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    input, button {
+      padding: 12px;
+      margin: 8px 0;
+      width: 90%;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    input {
+      background: #111;
+      color: #fff;
+      border: 1px solid cyan;
+      text-align: center;
+    }
+
+    input:focus {
+      outline: none;
+      box-shadow: 0 0 15px cyan;
+    }
+
+    button {
+      background: linear-gradient(45deg, #00c6ff, #0072ff);
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    button:hover {
+      background: linear-gradient(45deg, #0072ff, #00c6ff);
+      box-shadow: 0 0 15px cyan;
+      transform: scale(1.05);
+    }
+
+    a {
+      color: cyan;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: color 0.3s ease;
+    }
+
+    a:hover {
+      color: #00f7ff;
+      text-decoration: underline;
+    }
+
+    #code-section {
+      transition: all 0.5s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Logo -->
+  <img src="Jujutsu.png" alt="logo" class="logo">
+  <h1>Welcome</h1>
+
+  <!-- Sign Up Form -->
+  <div class="form-container" id="signup-form">
+    <h2>Create Account</h2>
+    <input type="email" id="signup-email" placeholder="Email" required>
+    <input type="password" id="signup-password" placeholder="Password" required>
+    <button onclick="signUp()">Sign Up</button>
+    <br>
+    <button onclick="showLogin()">Go to Login</button>
+  </div>
+
+  <!-- Login Form -->
+  <div class="form-container" id="login-form" style="display:none;">
+    <h2>Login</h2>
+    <input type="email" id="login-email" placeholder="Email" required>
+    <input type="password" id="login-password" placeholder="Password" required>
+    <button onclick="login()">Login</button>
+    <br>
+    <a onclick="showForgot()">Forgot Password?</a>
+  </div>
+
+  <!-- 2-Step Verification Form -->
+  <div class="form-container" id="twofa-form" style="display:none;">
+    <h2>2-Step Verification</h2>
+    <input type="text" id="twofa-code" placeholder="Enter Verification Code" required>
+    <button onclick="verify2FA()">Verify</button>
+    <button onclick="showLogin()">Cancel</button>
+  </div>
+
+  <!-- Forgot Password Form -->
+  <div class="form-container" id="forgot-form" style="display:none;">
+    <h2>Reset Password</h2>
+    <input type="email" id="forgot-email" placeholder="Enter your email" required>
+    <button onclick="sendResetCode()">Send Code</button>
+    <div id="code-section" style="display:none;">
+      <input type="text" id="reset-code" placeholder="Enter code" required>
+      <input type="password" id="new-password" placeholder="New Password" required>
+      <button onclick="resetPassword()">Reset Password</button>
+      <button onclick="showLogin()">Go to Login</button>
+    </div>
+  </div>
+
+  <!-- Your Script (same as before, no changes except styling) -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script>
+    emailjs.init("g5eE5Fb3bnnC1yfhy"); // Replace with your EmailJS Public Key
+
+    let resetCode = "";
+    let tempUser = "";
+
+    function signUp() {
+      let email = document.getElementById("signup-email").value.trim();
+      let password = document.getElementById("signup-password").value;
+
+      if (!email || !password) {
+        alert("Please fill in all fields.");
+        return;
+      }
+      if (password.length < 6) {
+        alert("Password must be at least 6 characters long.");
+        return;
+      }
+
+      let users = JSON.parse(localStorage.getItem("users")) || {};
+      if (users[email]) {
+        alert("Account already exists!");
+        return;
+      }
+
+      users[email] = password;
+      localStorage.setItem("users", JSON.stringify(users));
+
+      alert("Account created successfully!");
+      document.getElementById("signup-form").style.display = "none";
+      document.getElementById("login-form").style.display = "block";
+    }
+
+    function login() {
+      let email = document.getElementById("login-email").value.trim();
+      let password = document.getElementById("login-password").value;
+
+      let users = JSON.parse(localStorage.getItem("users")) || {};
+      if (users[email] && users[email] === password) {
+        tempUser = email;
+        document.getElementById("login-form").style.display = "none";
+        document.getElementById("twofa-form").style.display = "block";
+      } else {
+        alert("Invalid credentials.");
+      }
+    }
+
+    function verify2FA() {
+      let code = document.getElementById("twofa-code").value.trim();
+      if (code === "Dev001") {
+        alert("Login successful! Welcome " + tempUser);
+        localStorage.setItem("loggedInUser", tempUser);
+        window.location.href = "admin.html"; 
+      } else {
+        alert("Invalid 2-step verification code.");
+      }
+    }
+
+    function showLogin() {
+      document.getElementById("signup-form").style.display = "none";
+      document.getElementById("forgot-form").style.display = "none";
+      document.getElementById("twofa-form").style.display = "none";
+      document.getElementById("login-form").style.display = "block";
+    }
+
+    function showForgot() {
+      document.getElementById("login-form").style.display = "none";
+      document.getElementById("forgot-form").style.display = "block";
+    }
+
+    function sendResetCode() {
+      let email = document.getElementById("forgot-email").value.trim();
+      let users = JSON.parse(localStorage.getItem("users")) || {};
+
+      if (!users[email]) {
+        alert("No account found with this email.");
+        return;
+      }
+
+      resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+      emailjs.send("service_qg6ai4i", "template_z4iq4cf", { email: email, passcode: resetCode })
+        .then(() => {
+          alert("Reset code sent to your email.");
+          document.getElementById("code-section").style.display = "block";
+        }, error => {
+          alert("Failed to send email: " + JSON.stringify(error));
+        });
+    }
+
+    function resetPassword() {
+      let enteredCode = document.getElementById("reset-code").value.trim();
+      let newPassword = document.getElementById("new-password").value;
+      let email = document.getElementById("forgot-email").value.trim();
+
+      if (newPassword.length < 6) {
+        alert("New password must be at least 6 characters long.");
+        return;
+      }
+      if (enteredCode === resetCode) {
+        let users = JSON.parse(localStorage.getItem("users")) || {};
+        users[email] = newPassword;
+        localStorage.setItem("users", JSON.stringify(users));
+        alert("Password reset successfully!");
+        document.getElementById("forgot-form").style.display = "none";
+        document.getElementById("login-form").style.display = "block";
+      } else {
+        alert("Invalid reset code.");
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Ad Manager — Admin (URL Mode)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: Inter, system-ui, Arial; background:#0b1220; color:#e6eef8; padding:20px; }
+    .container{ max-width:920px; margin:0 auto; }
+    h1{ margin-bottom:8px; }
+    .card{ background:#071025; padding:16px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.6); margin-bottom:16px; }
+    label{ display:block; margin-top:8px; font-weight:600; }
+    input[type="text"], textarea, select{ width:100%; padding:8px; border-radius:6px; border:1px solid #16324a; background:#021122; color:#cfe9ff; }
+    textarea{ min-height:90px; resize:vertical; }
+    .row{ display:flex; gap:12px; margin-top:12px; }
+    .btn{ padding:8px 12px; border-radius:6px; border:none; cursor:pointer; font-weight:600; }
+    .btn-primary{ background:#2b9cff; color:#02102a; }
+    .btn-danger{ background:#ff6b6b; color:#fff; }
+    .preview{ border:1px dashed #16324a; padding:12px; margin-top:12px; border-radius:6px; text-align:center; }
+    .ad-list { margin-top:12px; }
+    .ad-item { display:flex; gap:12px; align-items:center; padding:10px; background:#061427; border-radius:8px; margin-bottom:8px; }
+    .ad-item img, .ad-item video { max-width:160px; max-height:90px; border-radius:6px; object-fit:cover; }
+    .meta { flex:1; }
+    .small { font-size:12px; opacity:0.8; }
+    .controls{ display:flex; gap:8px; }
+    .hint { font-size:13px; color:#9fbddf; margin-top:6px; }
+    a.linkish { color:#9fd6ff; text-decoration:underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Advertisement Manager (Admin) — URL Mode</h1>
+    <p class="hint">Create Image, Video (direct MP4 link or YouTube) or Text ads by pasting a URL or typing text. Ads are saved into <code>localStorage</code> and will appear on the main site.</p>
+
+    <div class="card">
+      <label for="ad-type">Ad Type</label>
+      <select id="ad-type">
+        <option value="image">Image (URL)</option>
+        <option value="video">Video (URL / YouTube)</option>
+        <option value="text">Text</option>
+      </select>
+
+      <div id="url-area" style="margin-top:8px;">
+        <label id="url-label">Media URL (image or video link)</label>
+        <input id="url-input" type="text" placeholder="https://example.com/image.jpg OR https://example.com/video.mp4 OR YouTube link">
+      </div>
+
+      <div id="text-area" style="display:none; margin-top:8px;">
+        <label>Text Content (for Text Ad)</label>
+        <textarea id="text-input" placeholder="Write your ad: headline + body + optional link"></textarea>
+      </div>
+
+      <label>Title (optional)</label>
+      <input id="ad-title" type="text" placeholder="Short headline (optional)">
+
+      <label>Target Link (optional)</label>
+      <input id="ad-link" type="text" placeholder="https://example.com">
+
+      <div class="row">
+        <button id="preview-btn" class="btn btn-primary">Preview</button>
+        <button id="save-btn" class="btn" style="background:#76e4a2;">Save Ad</button>
+        <button id="clear-btn" class="btn btn-danger">Clear All Ads</button>
+      </div>
+
+      <div id="preview" class="preview" aria-live="polite">Preview will appear here</div>
+    </div>
+
+    <div class="card">
+      <h3>Existing Ads</h3>
+      <div id="ad-list" class="ad-list"></div>
+    </div>
+  </div>
+
+  <script src="ads.js"></script>
+  <script>
+    const adTypeEl = document.getElementById('ad-type');
+    const urlInput = document.getElementById('url-input');
+    const urlLabel = document.getElementById('url-label');
+    const textAreaContainer = document.getElementById('text-area');
+    const textInput = document.getElementById('text-input');
+    const adTitle = document.getElementById('ad-title');
+    const adLink = document.getElementById('ad-link');
+    const previewBtn = document.getElementById('preview-btn');
+    const saveBtn = document.getElementById('save-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const previewBox = document.getElementById('preview');
+    const adListEl = document.getElementById('ad-list');
+
+    function switchMediaUI() {
+      const t = adTypeEl.value;
+      if (t === 'text') {
+        textAreaContainer.style.display = 'block';
+        urlInput.style.display = 'none';
+        urlLabel.style.display = 'none';
+      } else {
+        textAreaContainer.style.display = 'none';
+        urlInput.style.display = 'block';
+        urlLabel.style.display = 'block';
+        urlLabel.textContent = t === 'image' ? 'Image URL' : 'Video URL (MP4 or YouTube)';
+        urlInput.placeholder = t === 'image' ? 'https://example.com/image.jpg' : 'https://example.com/video.mp4 or YouTube link';
+      }
+    }
+
+    adTypeEl.addEventListener('change', switchMediaUI);
+    switchMediaUI();
+
+    function isYouTubeUrl(url) {
+      return /youtube\.com|youtu\.be/.test(url);
+    }
+
+    function buildPreview() {
+      previewBox.innerHTML = '';
+      const type = adTypeEl.value;
+      const title = adTitle.value.trim();
+      const link = adLink.value.trim();
+      if (type === 'text') {
+        const txt = textInput.value.trim() || 'No text entered';
+        const el = document.createElement('div');
+        if (title) el.innerHTML = '<h3>' + escapeHtml(title) + '</h3>';
+        el.innerHTML += '<p>' + escapeHtml(txt) + '</p>';
+        if (link) el.innerHTML += '<p><a class="linkish" href="' + escapeHtml(link) + '" target="_blank" rel="noreferrer">Open link</a></p>';
+        previewBox.appendChild(el);
+        return;
+      }
+
+      const url = urlInput.value.trim();
+      if (!url) { previewBox.textContent = 'Paste a valid URL to preview'; return; }
+
+      if (type === 'image') {
+        const img = document.createElement('img');
+        img.src = url;
+        img.style.maxWidth = '100%';
+        img.style.borderRadius = '8px';
+        img.onerror = () => previewBox.textContent = 'Image failed to load (check URL)';
+        previewBox.appendChild(img);
+        return;
+      }
+
+      // video preview (MP4 or YouTube embed)
+      if (type === 'video') {
+        if (isYouTubeUrl(url)) {
+          // embed youtube
+          const idMatch = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+          const vId = idMatch ? idMatch[1] : null;
+          if (vId) {
+            const iframe = document.createElement('iframe');
+            iframe.width = '100%';
+            iframe.height = '315';
+            iframe.src = 'https://www.youtube.com/embed/' + vId + '?rel=0';
+            iframe.frameBorder = '0';
+            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+            iframe.allowFullscreen = true;
+            previewBox.appendChild(iframe);
+            return;
+          } else {
+            previewBox.textContent = 'Could not parse YouTube ID from URL';
+            return;
+          }
+        } else {
+          // assume direct MP4 or playable link
+          const v = document.createElement('video');
+          v.controls = true; v.src = url; v.style.maxWidth = '100%'; v.onerror = () => previewBox.textContent = 'Video failed to load (check URL)';
+          previewBox.appendChild(v);
+          return;
+        }
+      }
+    }
+
+    previewBtn.addEventListener('click', buildPreview);
+
+    saveBtn.addEventListener('click', async () => {
+      const type = adTypeEl.value;
+      const title = adTitle.value.trim();
+      const link = adLink.value.trim();
+
+      if (type === 'text') {
+        const text = textInput.value.trim();
+        if (!text) { alert('Enter some text for the text ad'); return; }
+        const ad = AdStore.createAd('text', text, { title, link });
+        const ads = AdStore.loadAds(); ads.push(ad); AdStore.saveAds(ads);
+        renderAdList(); alert('Text ad saved');
+        return;
+      }
+
+      // image or video (URL)
+      const url = urlInput.value.trim();
+      if (!url) { alert('Enter a URL for image/video'); return; }
+
+      // basic validation: image extensions or youtube or mp4
+      const isImg = /\.(jpg|jpeg|png|webp|gif|svg)(\?.*)?$/i.test(url);
+      const isMp4 = /\.(mp4|webm|ogg)(\?.*)?$/i.test(url);
+      const isYt = isYouTubeUrl(url);
+
+      if (type === 'image' && !isImg) {
+        if (!confirm('URL does not look like an image (jpg/png/webp). Save anyway?')) {}
+      }
+      if (type === 'video' && !(isMp4 || isYt)) {
+        if (!confirm('URL does not look like a direct video or YouTube link. Save anyway?')) {}
+      }
+
+      const ad = AdStore.createAd(type, url, { title, link });
+      const ads = AdStore.loadAds(); ads.push(ad); AdStore.saveAds(ads);
+      renderAdList(); alert('Ad saved');
+
+      // reset inputs
+      urlInput.value = ''; textInput.value = ''; adTitle.value = ''; adLink.value = '';
+      previewBox.innerHTML = 'Preview will appear here';
+    });
+
+    function renderAdList() {
+      const ads = AdStore.loadAds(); adListEl.innerHTML = '';
+      if (!ads.length) { adListEl.innerHTML = '<div class="small">No ads yet</div>'; return; }
+      ads.forEach(ad => {
+        const item = document.createElement('div'); item.className = 'ad-item';
+        const thumb = document.createElement('div');
+        if (ad.type === 'image') {
+          const img = document.createElement('img'); img.src = ad.payload; thumb.appendChild(img);
+        } else if (ad.type === 'video') {
+          if (isYouTubeUrl(ad.payload)) {
+            const iframe = document.createElement('iframe'); iframe.width = '200'; iframe.height = '112';
+            const idMatch = ad.payload.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+            const vId = idMatch ? idMatch[1] : null;
+            iframe.src = vId ? 'https://www.youtube.com/embed/' + vId : '';
+            iframe.frameBorder = '0'; thumb.appendChild(iframe);
+          } else {
+            const v = document.createElement('video'); v.src = ad.payload; v.muted = true; v.controls = true; v.style.maxWidth = '160px'; thumb.appendChild(v);
+          }
+        } else {
+          const box = document.createElement('div'); box.style.padding = '6px'; box.textContent = ad.payload; thumb.appendChild(box);
+        }
+
+        const meta = document.createElement('div'); meta.className = 'meta';
+        meta.innerHTML =
+          '<div><strong>' + (ad.meta.title || ad.type.toUpperCase()) + '</strong></div>' +
+          '<div class="small">Type: ' + ad.type + ' • Created: ' + new Date(ad.createdAt).toLocaleString() + '</div>' +
+          (ad.meta.link ? '<div class="small">Link: <a class="linkish" href="' + escapeHtml(ad.meta.link) + '" target="_blank" rel="noreferrer">' + escapeHtml(ad.meta.link) + '</a></div>' : '');
+
+        const controls = document.createElement('div'); controls.className = 'controls';
+        const del = document.createElement('button'); del.className = 'btn btn-danger'; del.textContent = 'Delete';
+        del.addEventListener('click', () => { if (!confirm('Delete this ad?')) return; AdStore.deleteAd(ad.id); renderAdList(); });
+        controls.appendChild(del);
+
+        item.appendChild(thumb); item.appendChild(meta); item.appendChild(controls);
+        adListEl.appendChild(item);
+      });
+    }
+
+    clearBtn.addEventListener('click', () => { if (!confirm('Clear all saved ads?')) return; AdStore.clearAllAds(); renderAdList(); });
+
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+    renderAdList();
+  </script>
+</body>
+</html>
