@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="logo.fw.jpeg">
   <title>Ad Manager — Admin (URL Mode)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     body { font-family: Inter, system-ui, Arial; background:#0b1220; color:#e6eef8; padding:20px; }
     .container{ max-width:920px; margin:0 auto; }
@@ -295,36 +295,32 @@
 
     renderAdList();
   </script>
-  <style>
-    body {
-      background: #111;
-      margin: 0;
-      height: 100vh;
+<style>
+    .glow-btn2 {
+        display: inline-block;
+        margin: 20px auto;
+        padding: 30px 20px;
+        font-size: 14px;
+        color: #fff;
+        background: #007bff; /* Blue inside */
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 0 15px #007bff, 0 0 30px #007bff;
+        transition: 0.3s;
+        text-align: center;
     }
-  
-    .glow-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 7px 20px;
-      font-size: 8px;
-      color: #fff;
-      background: #007bff; /* Blue inside */
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 0 0 15px #007bff, 0 0 30px #007bff;
-      transition: 0.3s;
+
+    .glow-btn2:hover {
+        box-shadow: 0 0 25px #00a2ff, 0 0 20px #00a2ff;
+        transform: scale(1.05);
     }
-  
-    .glow-btn:hover {
-      box-shadow: 0 0 25px #00a2ff, 0 0 50px #00a2ff;
-      transform: scale(1.05);
-    }
-  </style>
+</style>
+<div style="text-align: center; margin: 20px 0;">
     <a href="https://catbox.moe/">
-      <button class="glow-btn" title="catbox">Converter</button>
+        <button class="glow-btn2" title="catbox">Converter</button>
     </a>
+</div>
 
     <style>
         body { font-family: Inter, Arial, Helvetica, sans-serif; background:#071224; color:#e6eef8; padding:20px; }
