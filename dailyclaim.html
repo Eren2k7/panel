@@ -480,7 +480,7 @@
 
     audio.addEventListener("canplaythrough", playAudio);
 
-    /* Centered Ads Overlay */
+    (function () {
     const AdStore = {
       loadAds: () => {
         try {
@@ -493,99 +493,108 @@
       },
     };
 
-    (function () {
-      const wrapper = document.getElementById('center-ad-wrapper');
-      const track = document.getElementById('ad-track');
-      const dots = document.getElementById('ad-dots');
-      const closeBtn = document.getElementById('ad-close');
+    const wrapper = document.getElementById('center-ad-wrapper');
+    const track = document.getElementById('ad-track');
+    const dots = document.getElementById('ad-dots');
+    const closeBtn = document.getElementById('ad-close');
 
-      let ads = [];
-      try {
-        ads = AdStore.loadAds();
-      } catch (e) {
-        ads = [];
-      }
+    let ads = [];
+    try {
+      ads = AdStore.loadAds();
+    } catch (e) {
+      ads = [];
+    }
 
-      if (!ads || !ads.length) {
-        wrapper.style.display = 'none';
-        return;
-      }
+    if (!ads || !ads.length) {
+      wrapper.style.display = 'none';
+      return;
+    }
 
-      const MAX_DISPLAY = 2;
-      if (ads.length > MAX_DISPLAY) ads = ads.slice(0, MAX_DISPLAY);
+    const MAX_DISPLAY = 2;
+    if (ads.length > MAX_DISPLAY) ads = ads.slice(0, MAX_DISPLAY);
 
-      let current = 0;
-      const INTERVAL = 2000;
-      let timer = null;
+    let current = 0;
+    const INTERVAL = 2000;
+    let timer = null;
 
-      function buildSlides() {
-        track.innerHTML = '';
-        ads.forEach((ad) => {
-          const slide = document.createElement('div');
-          slide.className = 'ad-slide';
+    function buildSlides() {
+      track.innerHTML = '';
+      ads.forEach((ad) => {
+        const slide = document.createElement('div');
+        slide.className = 'ad-slide';
 
-          if (ad.type === 'image') {
-            slide.innerHTML = `<img src="${ad.payload}" alt="${ad.meta.title || 'Ad'}">`;
-            if (ad.meta.link) {
-              const a = document.createElement('a');
-              a.href = ad.meta.link;
-              a.target = '_blank';
-              a.rel = 'noreferrer';
-              a.style.position = 'absolute';
-              a.style.inset = '0';
-              slide.appendChild(a);
-            }
-          } else if (ad.type === 'video') {
-            slide.innerHTML = `<video playsinline muted preload="metadata" controls><source src="${ad.payload}" type="video/mp4"></video>`;
-            if (ad.meta.link) {
-              const a = document.createElement('a');
-              a.href = ad.meta.link;
-              a.target = '_blank';
-              a.rel = 'noreferrer';
-              a.style.position = 'absolute';
-              a.style.inset = '0';
-              slide.appendChild(a);
-            }
-          } else {
-            const title = ad.meta.title ? `<h3>${ad.meta.title}</h3>` : '';
-            const body = `<p>${ad.payload}</p>`;
-            const linkHtml = ad.meta.link
-              ? `<p><a href="${ad.meta.link}" target="_blank" rel="noreferrer">${ad.meta.link}</a></p>`
-              : '';
-            slide.innerHTML = `<div>${title}${body}${linkHtml}</div>`;
-          }
+        if (ad.type === 'image') {
+          // Wrap the image in a clickable link
+          const link = document.createElement('a');
+          link.href = ad.meta.link || '#';
+          link.target = '_blank';
+          link.rel = 'noreferrer';
+          link.innerHTML = `<img src="${ad.payload}" alt="${ad.meta.title || 'Ad'}">`;
+          slide.appendChild(link);
+        } else if (ad.type === 'video') {
+          // Wrap the video in a clickable link
+          const videoWrapper = document.createElement('div');
+          videoWrapper.style.position = 'relative';
 
-          track.appendChild(slide);
-        });
-        wrapper.style.display = 'flex';
-      }
+          const video = document.createElement('video');
+          video.setAttribute('playsinline', 'true');
+          video.setAttribute('muted', 'true');
+          video.setAttribute('preload', 'metadata');
+          video.setAttribute('controls', 'true');
+          video.innerHTML = `<source src="${ad.payload}" type="video/mp4">`;
 
-      function updateSlide() {
-        track.style.transform = `translateX(${-current * 100}%)`;
-        [...dots.children].forEach((dot, i) => dot.classList.toggle('active', i === current));
-      }
+          const link = document.createElement('a');
+          link.href = ad.meta.link || '#';
+          link.target = '_blank';
+          link.rel = 'noreferrer';
+          link.style.position = 'absolute';
+          link.style.inset = '0'; // Cover the entire video area
+          link.style.zIndex = '10';
 
-      function nextSlide() {
-        current = (current + 1) % ads.length;
-        updateSlide();
-      }
+          videoWrapper.appendChild(video);
+          videoWrapper.appendChild(link);
+          slide.appendChild(videoWrapper);
+        } else {
+          // Handle text-based ads
+          const title = ad.meta.title ? `<h3>${ad.meta.title}</h3>` : '';
+          const body = `<p>${ad.payload}</p>`;
+          const linkHtml = ad.meta.link
+            ? `<p><a href="${ad.meta.link}" target="_blank" rel="noreferrer">${ad.meta.link}</a></p>`
+            : '';
+          slide.innerHTML = `<div>${title}${body}${linkHtml}</div>`;
+        }
 
-      function startTimer() {
-        timer = setInterval(nextSlide, INTERVAL);
-      }
-
-      function stopTimer() {
-        clearInterval(timer);
-      }
-
-      closeBtn.addEventListener('click', () => {
-        stopTimer();
-        wrapper.style.display = 'none';
+        track.appendChild(slide);
       });
+      wrapper.style.display = 'flex';
+    }
 
-      buildSlides();
-      startTimer();
-    })();
+    function updateSlide() {
+      track.style.transform = `translateX(${-current * 100}%)`;
+      [...dots.children].forEach((dot, i) => dot.classList.toggle('active', i === current));
+    }
+
+    function nextSlide() {
+      current = (current + 1) % ads.length;
+      updateSlide();
+    }
+
+    function startTimer() {
+      timer = setInterval(nextSlide, INTERVAL);
+    }
+
+    function stopTimer() {
+      clearInterval(timer);
+    }
+
+    closeBtn.addEventListener('click', () => {
+      stopTimer();
+      wrapper.style.display = 'none';
+    });
+
+    buildSlides();
+    startTimer();
+  })();
   </script>
 </body>
 </html>
