@@ -133,13 +133,14 @@
 
   .ad-slide img {
     max-width: 100%;
+    max-height: 80vh; /* Ensure the image doesn't exceed the viewport height */
     border-radius: 8px;
-    height: auto; /* Ensure images scale properly */
+    height: auto; /* Maintain aspect ratio */
   }
 
   .ad-slide video {
     width: 100%;
-    height: auto;
+    max-height: 80vh; /* Ensure the video doesn't exceed the viewport height */
     border-radius: 8px;
     display: block;
   }
@@ -179,6 +180,7 @@
     .ad-slide img,
     .ad-slide video {
       max-width: 100%;
+      max-height: 70vh; /* Adjust for smaller screens */
       height: auto;
     }
 
@@ -357,56 +359,46 @@
     let timer = null;
 
     function buildSlides() {
-      track.innerHTML = '';
-      ads.forEach((ad) => {
-        const slide = document.createElement('div');
-        slide.className = 'ad-slide';
+  track.innerHTML = '';
+  ads.forEach((ad) => {
+    const slide = document.createElement('div');
+    slide.className = 'ad-slide';
 
-        if (ad.type === 'image') {
-          // Wrap the image in a clickable link
-          const link = document.createElement('a');
-          link.href = ad.meta.link || '#';
-          link.target = '_blank';
-          link.rel = 'noreferrer';
-          link.innerHTML = `<img src="${ad.payload}" alt="${ad.meta.title || 'Ad'}">`;
-          slide.appendChild(link);
-        } else if (ad.type === 'video') {
-          // Wrap the video in a clickable link
-          const videoWrapper = document.createElement('div');
-          videoWrapper.style.position = 'relative';
+    if (ad.type === 'image') {
+      const link = document.createElement('a');
+      link.href = ad.meta.link || '#';
+      link.target = '_blank';
+      link.rel = 'noreferrer';
+      link.innerHTML = `<img src="${ad.payload}" alt="${ad.meta.title || 'Ad'}">`;
+      slide.appendChild(link);
+    } else if (ad.type === 'video') {
+      const videoWrapper = document.createElement('div');
+      videoWrapper.style.position = 'relative';
 
-          const video = document.createElement('video');
-          video.setAttribute('playsinline', 'true');
-          video.setAttribute('muted', 'true');
-          video.setAttribute('preload', 'metadata');
-          video.setAttribute('controls', 'true');
-          video.innerHTML = `<source src="${ad.payload}" type="video/mp4">`;
+      const video = document.createElement('video');
+      video.setAttribute('playsinline', 'true');
+      video.setAttribute('muted', 'true');
+      video.setAttribute('preload', 'metadata');
+      video.setAttribute('controls', 'true');
+      video.innerHTML = `<source src="${ad.payload}" type="video/mp4">`;
 
-          const link = document.createElement('a');
-          link.href = ad.meta.link || '#';
-          link.target = '_blank';
-          link.rel = 'noreferrer';
-          link.style.position = 'absolute';
-          link.style.inset = '0'; // Cover the entire video area
-          link.style.zIndex = '10';
+      const link = document.createElement('a');
+      link.href = ad.meta.link || '#';
+      link.target = '_blank';
+      link.rel = 'noreferrer';
+      link.style.position = 'absolute';
+      link.style.inset = '0';
+      link.style.zIndex = '10';
 
-          videoWrapper.appendChild(video);
-          videoWrapper.appendChild(link);
-          slide.appendChild(videoWrapper);
-        } else {
-          // Handle text-based ads
-          const title = ad.meta.title ? `<h3>${ad.meta.title}</h3>` : '';
-          const body = `<p>${ad.payload}</p>`;
-          const linkHtml = ad.meta.link
-            ? `<p><a href="${ad.meta.link}" target="_blank" rel="noreferrer">${ad.meta.link}</a></p>`
-            : '';
-          slide.innerHTML = `<div>${title}${body}${linkHtml}</div>`;
-        }
-
-        track.appendChild(slide);
-      });
-      wrapper.style.display = 'flex';
+      videoWrapper.appendChild(video);
+      videoWrapper.appendChild(link);
+      slide.appendChild(videoWrapper);
     }
+
+    track.appendChild(slide);
+  });
+  wrapper.style.display = 'flex';
+}
 
     function updateSlide() {
       track.style.transform = `translateX(${-current * 100}%)`;
