@@ -325,5 +325,256 @@
     <a href="https://catbox.moe/">
       <button class="glow-btn" title="catbox">Converter</button>
     </a>
+
+    <style>
+        body { font-family: Inter, Arial, Helvetica, sans-serif; background:#071224; color:#e6eef8; padding:20px; }
+        .container{ max-width:980px; margin:0 auto; }
+        .card{ background:#0b1228; padding:16px; border-radius:10px; box-shadow:0 8px 30px rgba(0,0,0,0.6); margin-bottom:16px; }
+        label{ display:block; margin-top:8px; font-weight:600; color:#bfe8ff; }
+        input[type="text"], input[type="datetime-local"], textarea, input[type="number"] { width:100%; padding:8px; border-radius:8px; border:1px solid #12324a; background:#021122; color:#cfe9ff; }
+        textarea{ min-height:80px; }
+        .row{ display:flex; gap:12px; margin-top:12px; flex-wrap:wrap; }
+        .btn{ padding:8px 12px; border-radius:8px; border:none; cursor:pointer; font-weight:700; }
+        .btn-primary{ background:#2b9cff; color:#02102a; }
+        .btn-green{ background:#4ad07a; color:#04210b; }
+        .btn-red{ background:#ff6b6b; color:white; }
+        .list{ margin-top:12px; }
+        .item{ background:#061427; padding:10px; border-radius:8px; display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:8px; }
+        .meta{ color:#9fbddf; font-size:13px; }
+        .small{ font-size:13px; color:#9fbddf; }
+        .muted{ color:#6e97b8; font-size:13px; }
+      </style>
+      </head>
+      <body>
+        <div class="container">
+            <h1>Admin - Manage Daily Panels</h1>
+            <form id="panel-form">
+              <label for="email">Email</label>
+              <input type="email" id="email" placeholder="Enter email" required>
+        
+              <label for="password">Password</label>
+              <input type="text" id="password" placeholder="Enter password" required>
+        
+              <label for="panel-url">Panel URL</label>
+              <input type="url" id="panel-url" placeholder="Enter panel URL" required>
+        
+              <button type="submit">Save Panel</button>
+            </form>
+        
+            <div>
+              <h2>Upload JSON File</h2>
+              <input type="file" id="json-upload" accept=".json">
+              <button id="upload-btn">Upload JSON</button>
+            </div>
+        
+            <div class="panel-list" id="panel-list">
+              <h2>Saved Panels</h2>
+              <div id="no-panels" style="display: none;">No panels saved yet.</div>
+            </div>
+          </div>
+        
+          <script>
+            const KEY_CLAIMS = 'daily_claims';
+        
+            const form = document.getElementById('panel-form');
+            const panelList = document.getElementById('panel-list');
+            const noPanels = document.getElementById('no-panels');
+            const jsonUpload = document.getElementById('json-upload');
+            const uploadBtn = document.getElementById('upload-btn');
+        
+            // Load panels from localStorage
+            function loadPanels() {
+              try {
+                return JSON.parse(localStorage.getItem(KEY_CLAIMS)) || [];
+              } catch (e) {
+                console.error('Failed to load panels:', e);
+                return [];
+              }
+            }
+        
+            // Save panels to localStorage
+            function savePanels(panels) {
+              localStorage.setItem(KEY_CLAIMS, JSON.stringify(panels));
+            }
+        
+            // Render the list of panels
+            function renderPanels() {
+              const panels = loadPanels();
+              panelList.innerHTML = '<h2>Saved Panels</h2>';
+              if (panels.length === 0) {
+                noPanels.style.display = 'block';
+                return;
+              }
+              noPanels.style.display = 'none';
+        
+              panels.forEach((panel, index) => {
+                const panelItem = document.createElement('div');
+                panelItem.className = 'panel-item';
+                panelItem.innerHTML = `
+                  <span><strong>Email:</strong> ${panel.email}</span>
+                  <span><strong>Password:</strong> ${panel.password}</span>
+                  <span><strong>Panel URL:</strong> <a href="${panel.panel_url}" target="_blank">${panel.panel_url}</a></span>
+                  <button onclick="deletePanel(${index})">Delete</button>
+                `;
+                panelList.appendChild(panelItem);
+              });
+            }
+        
+            // Delete a panel
+            function deletePanel(index) {
+              const panels = loadPanels();
+              panels.splice(index, 1);
+              savePanels(panels);
+              renderPanels();
+            }
+        
+            // Handle form submission
+            form.addEventListener('submit', (e) => {
+              e.preventDefault();
+        
+              const email = document.getElementById('email').value;
+              const password = document.getElementById('password').value;
+              const panelUrl = document.getElementById('panel-url').value;
+        
+              if (!email || !password || !panelUrl) {
+                alert('Please fill in all fields!');
+                return;
+              }
+        
+              const panels = loadPanels();
+              panels.push({ email, password, panel_url: panelUrl });
+              savePanels(panels);
+        
+              form.reset();
+              renderPanels();
+              alert('Panel saved successfully!');
+            });
+        
+            // Handle JSON upload
+            uploadBtn.addEventListener('click', () => {
+              const file = jsonUpload.files[0];
+              if (!file) {
+                alert('Please select a JSON file to upload.');
+                return;
+              }
+        
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                try {
+                  const data = JSON.parse(e.target.result);
+                  if (!Array.isArray(data)) {
+                    alert('Invalid JSON format. The file must contain an array of panels.');
+                    return;
+                  }
+        
+                  const panels = loadPanels();
+                  data.forEach((panel) => {
+                    if (panel.email && panel.password && panel.panel_url) {
+                      panels.push(panel);
+                    } else {
+                      console.warn('Skipped invalid panel:', panel);
+                    }
+                  });
+        
+                  savePanels(panels);
+                  renderPanels();
+                  alert('Panels uploaded successfully!');
+                } catch (err) {
+                  console.error('Failed to parse JSON:', err);
+                  alert('Invalid JSON file.');
+                }
+              };
+        
+              reader.readAsText(file);
+            });
+        
+            // Initial render
+            renderPanels();
+          </script>
+           <style>
+            /* General Styles */
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+        
+            html, body {
+              height: 100%;
+              width: 100%;
+              font-family: 'Poppins', sans-serif;
+              background: #0b1220;
+              color: #e6eef8;
+              padding: 20px;
+            }
+        
+            .container {
+              max-width: 800px;
+              margin: 20px auto;
+              padding: 20px;
+              background: #1a233a;
+              border-radius: 10px;
+              box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            }
+        
+            h1 {
+              text-align: center;
+              margin-bottom: 20px;
+              font-size: 24px;
+            }
+        
+            label {
+              display: block;
+              margin: 10px 0 5px;
+              font-weight: bold;
+            }
+        
+            input, textarea, button {
+              width: 100%;
+              padding: 10px;
+              margin-bottom: 15px;
+              border: 1px solid #9fbddf;
+              border-radius: 5px;
+              background: #0f1724;
+              color: #eef6ff;
+            }
+        
+            button {
+              background: #007bff;
+              color: #fff;
+              border: none;
+              cursor: pointer;
+              transition: background 0.3s;
+            }
+        
+            button:hover {
+              background: #0056b3;
+            }
+        
+            .panel-list {
+              margin-top: 20px;
+            }
+        
+            .panel-item {
+              padding: 10px;
+              border: 1px solid #9fbddf;
+              border-radius: 5px;
+              margin-bottom: 10px;
+              background: #0f1724;
+            }
+        
+            .panel-item span {
+              display: block;
+              margin-bottom: 5px;
+            }
+        
+            .panel-item button {
+              background: #ff4d4d;
+            }
+        
+            .panel-item button:hover {
+              background: #cc0000;
+            }
+          </style>
 </body>
 </html>
