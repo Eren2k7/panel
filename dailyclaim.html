@@ -77,114 +77,117 @@
     }
 
     /* Centered Ads Overlay */
-    #center-ad-wrapper {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      z-index: 9999;
-    }
+  /* General Styles for Ads */
+  #center-ad-wrapper {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 9999;
+  }
 
+  #center-ad {
+    width: min(92vw, 760px);
+    background: #0f1724;
+    color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
+    overflow: hidden;
+    pointer-events: auto;
+    position: relative;
+  }
+
+  #ad-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.35);
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    padding: 6px 9px;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 10;
+  }
+
+  .ad-viewport {
+    overflow: hidden;
+  }
+
+  .ad-track {
+    display: flex;
+    transition: transform 450ms ease-in-out;
+  }
+
+  .ad-slide {
+    min-width: 100%;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    flex-direction: column; /* Stack content vertically for better mobile layout */
+  }
+
+  .ad-slide img {
+    max-width: 100%;
+    border-radius: 8px;
+    height: auto; /* Ensure images scale properly */
+  }
+
+  .ad-slide video {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    display: block;
+  }
+
+  #ad-dots {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    padding: 10px 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.0), rgba(0, 0, 0, 0.06));
+  }
+
+  .ad-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.35);
+    cursor: pointer;
+  }
+
+  .ad-dot.active {
+    background: #ffd166;
+  }
+
+  /* Mobile-Friendly Styles */
+  @media (max-width: 768px) {
     #center-ad {
-      width: min(92vw, 760px);
-      background: #0f1724;
-      color: #fff;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
-      overflow: hidden;
-      pointer-events: auto;
-      position: relative;
-    }
-
-    #ad-close {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: rgba(0, 0, 0, 0.35);
-      border: none;
-      color: #fff;
-      font-size: 18px;
-      padding: 6px 9px;
-      border-radius: 6px;
-      cursor: pointer;
-      z-index: 10;
-    }
-
-    .ad-viewport {
-      overflow: hidden;
-    }
-
-    .ad-track {
-      display: flex;
-      transition: transform 450ms ease-in-out;
+      width: 90%;
+      border-radius: 8px;
     }
 
     .ad-slide {
-      min-width: 100%;
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
+      padding: 10px;
+      flex-direction: column; /* Stack content vertically */
     }
 
-    .ad-slide img {
-      max-width: 100%;
-      border-radius: 8px;
-    }
-
+    .ad-slide img,
     .ad-slide video {
-      width: 100%;
+      max-width: 100%;
       height: auto;
-      border-radius: 8px;
-      display: block;
     }
 
-    #ad-dots {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      padding: 10px 0;
-      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.0), rgba(0, 0, 0, 0.06));
+    #ad-close {
+      font-size: 16px;
+      padding: 4px 6px;
     }
-
-    .ad-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.35);
-      cursor: pointer;
-    }
-
-    .ad-dot.active {
-      background: #ffd166;
-    }
-
-    /* Mobile-Friendly Styles */
-    @media (max-width: 768px) {
-      #center-ad {
-        width: 90%;
-        border-radius: 8px;
-      }
-
-      .ad-slide {
-        padding: 10px;
-        flex-direction: column;
-      }
-
-      .ad-slide img,
-      .ad-slide video {
-        max-width: 100%;
-        height: auto;
-      }
-
-      #ad-close {
-        font-size: 16px;
-        padding: 4px 6px;
-      }
-    }
+  }
   </style>
 </head>
 <body>
