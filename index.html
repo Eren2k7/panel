@@ -222,10 +222,10 @@
 </head>
 <body>
   <header>
-    <h1>Welcome to ErenXGolden Panel's Site</h1>
+    <h1>Welcome to Eren Panel's Site</h1>
   </header>
 
-    <header class="btn-wrapper">
+  <header class="btn-wrapper">
     <a href="dailyclaim.html">
       <button class="glow-btn" title="Daily Claim">Daily Claim</button>
     </a>
@@ -233,7 +233,8 @@
       <button class="glow-btn" title="Buy Panel">Buy Panel</button>
     </a>
   </header>
-  
+
+
   <!-- Preloader -->
   <div id="preloader">
     <video id="introVideo" autoplay muted loop playsinline>
@@ -262,7 +263,7 @@
       <div id="ad-dots"></div>
     </div>
   </div>
-  
+
   <script>
     /* Preloader Logic */
     const preloader = document.getElementById('preloader');
@@ -350,11 +351,11 @@
       return;
     }
 
-    const MAX_DISPLAY = 2;
+    const MAX_DISPLAY = 3;
     if (ads.length > MAX_DISPLAY) ads = ads.slice(0, MAX_DISPLAY);
 
     let current = 0;
-    const INTERVAL = 2000;
+    const INTERVAL = 3000;
     let timer = null;
 
     function buildSlides() {
@@ -363,13 +364,55 @@
     const slide = document.createElement('div');
     slide.className = 'ad-slide';
 
-    if (ad.type === 'image') {
+    if (ad.type === 'text') {
+      // Create a container for text ads
+      const textContainer = document.createElement('div');
+      textContainer.style.color = '#fff';
+      textContainer.style.textAlign = 'center';
+      textContainer.style.padding = '20px';
+
+      // Add title if available
+      if (ad.meta.title) {
+        const title = document.createElement('h3');
+        title.textContent = ad.meta.title;
+        title.style.marginBottom = '10px';
+        textContainer.appendChild(title);
+      }
+
+      // Add the main text content
+      const textContent = document.createElement('p');
+      textContent.textContent = ad.payload;
+      textContainer.appendChild(textContent);
+
+      // Add a link if available
+      if (ad.meta.link) {
+        const link = document.createElement('a');
+        link.href = ad.meta.link;
+        link.textContent = 'Learn more';
+        link.target = '_blank';
+        link.style.display = 'block';
+        link.style.marginTop = '10px';
+        link.style.color = '#ffd166';
+        textContainer.appendChild(link);
+      }
+
+      slide.appendChild(textContainer);
+    } else if (ad.type === 'image') {
       const link = document.createElement('a');
       link.href = ad.meta.link || '#';
       link.target = '_blank';
       link.rel = 'noreferrer';
       link.innerHTML = `<img src="${ad.payload}" alt="${ad.meta.title || 'Ad'}">`;
+
+      // Add text below the image
+      const text = document.createElement('p');
+      text.textContent = ad.meta.title || '';
+      text.style.color = '#fff';
+      text.style.textAlign = 'center';
+      text.style.marginTop = '10px';
+
       slide.appendChild(link);
+      slide.appendChild(text);
     } else if (ad.type === 'video') {
       const videoWrapper = document.createElement('div');
       videoWrapper.style.position = 'relative';
@@ -426,6 +469,103 @@
     startTimer();
   })();
   </script>
-</body>
+  <!-- ===== Fancy Floating Contact Buttons ===== -->
+<style>
+  .contact-float {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    z-index: 9999;
+  }
 
+  .contact-float a {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: linear-gradient(135deg, #0f1724 0%, #0b1220 100%);
+    box-shadow: 0 0 20px rgba(0,0,0,0.5), 0 0 15px rgba(37,211,102,0.2);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .contact-float a::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .contact-float a:hover::before {
+    opacity: 1;
+  }
+
+  .contact-float a:hover {
+    transform: scale(1.1) rotate(3deg);
+    box-shadow: 0 0 25px rgba(255,255,255,0.2), 0 0 30px var(--glow, rgba(255,255,255,0.3));
+  }
+
+  .contact-float svg {
+    width: 28px;
+    height: 28px;
+    fill: currentColor;
+    z-index: 2;
+  }
+
+  .whatsapp-float {
+    --glow: rgba(37,211,102,0.8);
+    background: linear-gradient(135deg, #25D366, #1ebe57);
+  }
+
+  .telegram-float {
+    --glow: rgba(0,136,204,0.8);
+    background: linear-gradient(135deg, #0088cc, #00a0e6);
+  }
+
+  /* Soft pulse animation */
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 15px var(--glow, rgba(255,255,255,0.2)); }
+    50% { box-shadow: 0 0 25px var(--glow, rgba(255,255,255,0.6)); }
+  }
+  .contact-float a {
+    animation: pulse 2.4s infinite;
+  }
+</style>
+
+<div class="contact-float">
+  <!-- WhatsApp -->
+  <a href="https://wa.me/2348123456789?text=Hello%20Admin%2C%20I%20need%20assistance" 
+     target="_blank" 
+     class="whatsapp-float" 
+     aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 24 24">
+      <path d="M20.5 3.5A11.9 11.9 0 0 0 12 1C6 1 1.5 5.5 1.5 11.5c0 2 .5 3.8 1.5 5.4L1 23l6.3-2.1c1.6.9 3.5 1.4 5.7 1.4 6 0 10.5-4.5 10.5-10.5 0-3-1.2-5.8-3.5-7.3z" fill="#fff"/>
+    </svg>
+  </a>
+
+  <!-- Telegram -->
+  <a href="https://t.me/adminusername" 
+     target="_blank" 
+     class="telegram-float" 
+     aria-label="Message on Telegram">
+    <svg viewBox="0 0 24 24">
+      <path d="M22 2L2 9.2l5.6 2.1L9.6 20 13 14l6.9-9.3z" fill="#fff"/>
+    </svg>
+  </a>
+</div>
+
+</body>
 </html>
