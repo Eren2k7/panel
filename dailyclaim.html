@@ -395,8 +395,46 @@
       setInterval(tick, 1000);
     })();
   </script>
+<style>
+  /* Center the image button */
+  .image-button-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full viewport height */
+    text-align: center;
+  }
+
+  .image-button-wrapper img {
+    height: auto;
+    width: 50px;
+    border: 2px solid #0f0f0f;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .image-button-wrapper img:hover {
+    transform: scale(1.1); /* Slight zoom effect on hover */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Mobile-friendly adjustments */
+  @media (max-width: 768px) {
+    .image-button-wrapper img {
+      width: 40px; /* Slightly smaller on mobile */
+    }
+  }
+</style>
+higashide kei
+<div class="image-button-wrapper">
+  <a href="index.html">
+    <img src="left.fw.png" alt="Homepage">
+  </a>
+</div>
     </body>
 
+  <p style="color: black;">User</p>
   <!-- Preloader -->
   <div id="preloader">
     <video id="introVideo" autoplay muted loop playsinline>
@@ -712,7 +750,7 @@
 
 <div class="contact-float">
   <!-- WhatsApp -->
-  <a href="https://wa.me/2348123456789?text=Hello%20Admin%2C%20I%20need%20assistance" 
+  <a href="https://wa.me/13603903303?text=Hello%20Admin%2C%20I%20need%20assistance" 
      target="_blank" 
      class="whatsapp-float" 
      aria-label="Chat on WhatsApp">
@@ -722,7 +760,7 @@
   </a>
 
   <!-- Telegram -->
-  <a href="https://t.me/adminusername" 
+  <a href="https://t.me/@Er3n_2k7" 
      target="_blank" 
      class="telegram-float" 
      aria-label="Message on Telegram">
