@@ -89,176 +89,121 @@
 </head>
 <body>
 
-<div>Total Visitors: <span id="visitor-count">Loading...</span></div>
+  <h1>Welcome User</h1>
 
-<script src="https://cdn.jsdelivr.net/npm/counterapi/dist/counter.browser.min.js"></script>
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const counter = new Counter({
-      workspace: "eren-1"  // use the slug from your dashboard
-    });
-
-    counter.up("page-views") // make sure you created this counter in CounterAPI
-      .then(result => {
-        document.getElementById("visitor-count").textContent = result.value;
-      })
-      .catch(err => {
-        console.error("CounterAPI error:", err);
-        document.getElementById("visitor-count").textContent = "Error";
-      });
-  });
-</script>
-
-
-<h1>Welcome User</h1>
-
-<!-- Sign Up Form -->
-<div class="form-container" id="signup-form">
-  <h2>Create Account</h2>
-  <input type="email" id="signup-email" placeholder="Email" required>
-  <input type="password" id="signup-password" placeholder="Password" required>
-  <button onclick="signUp()">Sign Up</button>
-  <br>
-  <button onclick="showLogin()">Go to Login</button>
-</div>
-
-<!-- Login Form -->
-<div class="form-container" id="login-form" style="display:none;">
-  <h2>Login</h2>
-  <input type="email" id="login-email" placeholder="Email" required>
-  <input type="password" id="login-password" placeholder="Password" required>
-  <button onclick="login()">Login</button>
-  <br>
-  <a onclick="showForgot()">Forgot Password?</a>
-</div>
-
-<!-- Forgot Password Form -->
-<div class="form-container" id="forgot-form" style="display:none;">
-  <h2>Reset Password</h2>
-  <input type="email" id="forgot-email" placeholder="Enter your email" required>
-  <button onclick="sendResetCode()">Send Code</button>
-  <div id="code-section" style="display:none;">
-    <input type="text" id="reset-code" placeholder="Enter code" required>
-    <input type="password" id="new-password" placeholder="New Password" required>
-    <button onclick="resetPassword()">Reset Password</button>
+  <!-- Signup Form -->
+  <div class="form-container" id="signup-form">
+    <h2>Create Account</h2>
+    <input type="email" id="signup-email" placeholder="Email" required />
+    <input type="password" id="signup-password" placeholder="Password" required />
+    <button id="signup-btn">Sign Up</button>
+    <br />
     <button onclick="showLogin()">Go to Login</button>
   </div>
-</div>
 
-<!-- EmailJS Script -->
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-<script>
-  emailjs.init("g5eE5Fb3bnnC1yfhy"); // Replace with your EmailJS Public Key
+  <!-- Login Form -->
+  <div class="form-container" id="login-form" style="display:none;">
+    <h2>Login</h2>
+    <input type="email" id="login-email" placeholder="Email" required />
+    <input type="password" id="login-password" placeholder="Password" required />
+    <button id="login-btn">Login</button>
+    <br />
+    <a onclick="showForgot()">Forgot Password?</a>
+  </div>
 
-  let resetCode = "";
+  <!-- Forgot Password Form -->
+  <div class="form-container" id="forgot-form" style="display:none;">
+    <h2>Reset Password</h2>
+    <input type="email" id="forgot-email" placeholder="Enter your email" required />
+    <button id="forgot-btn">Send Reset Email</button>
+    <button onclick="showLogin()">Go to Login</button>
+  </div>
 
-  function signUp() {
-    let email = document.getElementById("signup-email").value.trim();
-    let password = document.getElementById("signup-password").value;
+  <p>
+    <a href="login.html">
+      <img style="height:auto;width:50px;" src="right.fw.png" alt="Premium Link" />
+    </a>
+    <p style="color:black;">Admin</p>
+  </p>
 
-    if (!email || !password) {
-      alert("Please fill in all fields.");
-      return;
-    }
+  <!-- Firebase Authentication Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } 
+      from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
-    if (password.length < 6) {
-      alert("Password must be at least 6 characters long.");
-      return;
-    }
+    // 🔹 Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAXZQi1Wdwf7oHRVapWNGgcCYtd4Dy5kQk",
+      authDomain: "eren-c4b30.firebaseapp.com",
+      projectId: "eren-c4b30",
+      storageBucket: "eren-c4b30.firebasestorage.app",
+      messagingSenderId: "91279547740",
+      appId: "1:91279547740:web:11cc9f1eb5423f94993599",
+      measurementId: "G-LPF98ZZ527"
+    };
 
-    let users = JSON.parse(localStorage.getItem("users")) || {};
-    if (users[email]) {
-      alert("Account already exists!");
-      return;
-    }
+    // 🔹 Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-    users[email] = password;
-    localStorage.setItem("users", JSON.stringify(users));
+    // 🔹 Sign Up
+    document.getElementById("signup-btn").addEventListener("click", async () => {
+      const email = document.getElementById("signup-email").value.trim();
+      const password = document.getElementById("signup-password").value;
 
-    alert("Account created successfully!");
-    document.getElementById("signup-form").style.display = "none";
-    document.getElementById("login-form").style.display = "block";
-  }
+      if (!email || !password) return alert("Please fill all fields.");
 
-  function login() {
-    let email = document.getElementById("login-email").value.trim();
-    let password = document.getElementById("login-password").value;
-
-    let users = JSON.parse(localStorage.getItem("users")) || {};
-    if (users[email] && users[email] === password) {
-      alert("Login successful! Welcome " + email);
-
-      // Save login state
-      localStorage.setItem("loggedInUser", email);
-
-      // Redirect to main page
-      window.location.href = "verify.html"; // change to your actual page
-    } else {
-      alert("Invalid credentials.");
-    }
-  }
-
-  function showLogin() {
-    document.getElementById("signup-form").style.display = "none";
-    document.getElementById("login-form").style.display = "block";
-  }
-
-  function showForgot() {
-    document.getElementById("login-form").style.display = "none";
-    document.getElementById("forgot-form").style.display = "block";
-  }
-
-  function sendResetCode() {
-    let email = document.getElementById("forgot-email").value.trim();
-    let users = JSON.parse(localStorage.getItem("users")) || {};
-
-    if (!users[email]) {
-      alert("No account found with this email.");
-      return;
-    }
-
-    resetCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-    emailjs.send("service_qg6ai4i", "template_z4iq4cf", {
-      email: email,
-      passcode: resetCode
-    })
-    .then(function() {
-      alert("Reset code sent to your email.");
-      document.getElementById("code-section").style.display = "block";
-    }, function(error) {
-      alert("Failed to send email: " + JSON.stringify(error));
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        alert("✅ Account created successfully!");
+        showLogin();
+      } catch (error) {
+        alert("❌ Error: " + error.message);
+      }
     });
-  }
 
-  function resetPassword() {
-    let enteredCode = document.getElementById("reset-code").value.trim();
-    let newPassword = document.getElementById("new-password").value;
-    let email = document.getElementById("forgot-email").value.trim();
+    // 🔹 Login
+    document.getElementById("login-btn").addEventListener("click", async () => {
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value;
 
-    if (newPassword.length < 6) {
-      alert("New password must be at least 6 characters long.");
-      return;
-    }
+      if (!email || !password) return alert("Please fill all fields.");
 
-    if (enteredCode === resetCode) {
-      let users = JSON.parse(localStorage.getItem("users")) || {};
-      users[email] = newPassword;
-      localStorage.setItem("users", JSON.stringify(users));
-      alert("Password reset successfully!");
-      document.getElementById("forgot-form").style.display = "none";
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert("✅ Login successful!");
+        window.location.href = "verify.html"; // change this to your dashboard
+      } catch (error) {
+        alert("❌ Login failed: " + error.message);
+      }
+    });
+
+    // 🔹 Password Reset
+    document.getElementById("forgot-btn").addEventListener("click", async () => {
+      const email = document.getElementById("forgot-email").value.trim();
+      if (!email) return alert("Enter your email.");
+
+      try {
+        await sendPasswordResetEmail(auth, email);
+        alert("📩 Password reset email sent. Check your SPAM!");
+      } catch (error) {
+        alert("❌ Error: " + error.message);
+      }
+    });
+
+    // 🔹 Toggle Forms
+    window.showLogin = function() {
+      document.getElementById("signup-form").style.display = "none";
       document.getElementById("login-form").style.display = "block";
-    } else {
-      alert("Invalid reset code.");
-    }
-  }
-</script>
-<p>
-	
-  <a href="login.html">
-    <img style="height: auto; width: 50px;" src="right.fw.png" alt="Premium Link">
-  </a>
-<p style="color: black;">Admin</p>
-</p>
+      document.getElementById("forgot-form").style.display = "none";
+    };
+
+    window.showForgot = function() {
+      document.getElementById("signup-form").style.display = "none";
+      document.getElementById("login-form").style.display = "none";
+      document.getElementById("forgot-form").style.display = "block";
+    };
+  </script>
 </body>
 </html>
