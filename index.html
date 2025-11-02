@@ -1,572 +1,201 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
   <link rel="icon" type="image/png" href="logo.fw.jpeg">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Eren Panel's Site</title>
+  <title>Eren Panel — Home</title>
   <style>
-    /* General Styles */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    :root {
+      --bg:#071022; --card:#0f1724; --muted:#9fbddf; --accent:#ffd166;
+      --mini-size:110px;
+    }
+    body {
+      margin:0; font-family:Poppins,system-ui,Arial;
+      background:var(--bg); color:#eaf6ff; text-align:center;
+    }
+    .wrap { max-width:800px; margin:80px auto; padding:20px; }
+    h1 { font-size:2em; margin-bottom:0.3em; }
+    p.small { color:var(--muted); font-size:0.9em; margin-bottom:2em; }
+
+    /* Claim button */
+    .claim-btn {
+      padding:16px 40px; font-size:20px;
+      background:linear-gradient(90deg,#007bff,#00c8ff);
+      color:#fff; border:none; border-radius:50px;
+      cursor:pointer; font-weight:700;
+      box-shadow:0 0 15px rgba(0,200,255,.4);
+      transition:all 0.3s ease;
+    }
+    .claim-btn:hover {
+      transform:scale(1.05);
+      box-shadow:0 0 25px rgba(0,200,255,.6);
     }
 
-    html, body {
-      height: 100%;
-      width: 100%;
-      font-family: 'Poppins', sans-serif;
-      overflow: hidden;
-    }
+    /* Full-screen ad overlay */
+    #ad-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;background:rgba(0,0,0,0.55)}
+    #ad-card{width:min(92vw,900px);background:#081226;border-radius:12px;padding:10px;position:relative;overflow:hidden}
+    #ad-close{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.35);border:none;color:#fff;font-size:18px;padding:6px 9px;border-radius:6px;cursor:pointer}
+    .ad-track{display:flex;transition:transform .45s ease-in-out;will-change:transform;}
+    .ad-slide{min-width:100%;padding:8px;box-sizing:border-box}
+    .ad-slide img, .ad-slide video{width:100%;height:auto;border-radius:8px;display:block}
+    .ad-caption{text-align:center;color:#fff;padding:8px 6px;font-weight:700}
 
-    /* Preloader */
-    #preloader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: black;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      transition: opacity 0.5s ease;
-    }
-
-    #preloader video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    /* Main Content */
-    #main-content {
-      display: none;
-      height: 100%;
-      width: 100%;
-      overflow-x: hidden;
-      color: white;
-      text-align: center;
-    }
-
-    video.background-video {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: -1;
-      opacity: 0.6;
-    }
-
-    h1 {
-      font-family: 'Lucida Sans Regular';
-      text-align: center;
-      font-size: clamp(2rem, 5vw, 4rem);
-      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
-      margin: 0;
-    }
-
-    p {
-      font-size: clamp(1rem, 3vw, 1.5rem);
-      margin-top: 1rem;
-      text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
-    }
-
-    /* Centered Ads Overlay */
-  /* General Styles for Ads */
-  #center-ad-wrapper {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    z-index: 9999;
-  }
-
-  #center-ad {
-    width: min(92vw, 760px);
-    background: #0f1724;
-    color: #fff;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
-    overflow: hidden;
-    pointer-events: auto;
-    position: relative;
-  }
-
-  #ad-close {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(0, 0, 0, 0.35);
-    border: none;
-    color: #fff;
-    font-size: 18px;
-    padding: 6px 9px;
-    border-radius: 6px;
-    cursor: pointer;
-    z-index: 10;
-  }
-
-  .ad-viewport {
-    overflow: hidden;
-  }
-
-  .ad-track {
-    display: flex;
-    transition: transform 450ms ease-in-out;
-  }
-
-  .ad-slide {
-    min-width: 100%;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    flex-direction: column; /* Stack content vertically for better mobile layout */
-  }
-
-  .ad-slide img {
-    max-width: 100%;
-    max-height: 80vh; /* Ensure the image doesn't exceed the viewport height */
-    border-radius: 8px;
-    height: auto; /* Maintain aspect ratio */
-  }
-
-  .ad-slide video {
-    width: 100%;
-    max-height: 80vh; /* Ensure the video doesn't exceed the viewport height */
-    border-radius: 8px;
-    display: block;
-  }
-
-  #ad-dots {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    padding: 10px 0;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.0), rgba(0, 0, 0, 0.06));
-  }
-
-  .ad-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.35);
-    cursor: pointer;
-  }
-
-  .ad-dot.active {
-    background: #ffd166;
-  }
-
-  /* Mobile-Friendly Styles */
-  @media (max-width: 768px) {
-    #center-ad {
-      width: 90%;
-      border-radius: 8px;
-    }
-
-    .ad-slide {
-      padding: 10px;
-      flex-direction: column; /* Stack content vertically */
-    }
-
-    .ad-slide img,
-    .ad-slide video {
-      max-width: 100%;
-      max-height: 70vh; /* Adjust for smaller screens */
-      height: auto;
-    }
-
-    #ad-close {
-      font-size: 16px;
-      padding: 4px 6px;
-    }
-  }
-
-    /* Button Wrapper */
-    .btn-wrapper {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      gap: 20px;
-      margin: 0;
-    }
-
-    .glow-btn {
-      width: 200px;
-      height: 50px;
-      font-size: 25px;
-      color: #080101;
-      background: #007bff;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 0 0 15px #007bff, 0 0 30px #007bff;
-      transition: 0.3s;
-    }
-
-    .glow-btn:hover {
-      box-shadow: 0 0 25px #00a2ff, 0 0 50px #00a2ff;
-      transform: scale(1.05);
-    }
+    /* mini corner ad */
+    #mini-ad{position:fixed;z-index:9998;width:var(--mini-size);height:var(--mini-size);right:18px;bottom:18px;background:#081226;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.6);display:none;overflow:hidden;cursor:pointer}
+    #mini-thumb{width:100%;height:66%;background:#011;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    #mini-thumb img, #mini-thumb video{max-width:100%;max-height:100%;display:block}
+    #mini-meta{padding:6px;font-size:13px;color:var(--muted);height:34%}
+    #mini-close{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.35);border:none;color:#fff;padding:4px;border-radius:6px;font-size:12px;cursor:pointer}
   </style>
 </head>
 <body>
-  <header>
-    <h1>Welcome to Eren Panel's Site</h1>
-  </header>
+  <div class="wrap">
+    <h1>Welcome to Eren Panel</h1>
+    <p class="small">Claim your daily reward and enjoy synced advertisements managed by admin.</p>
 
-  <header class="btn-wrapper">
-    <a href="dailyclaim.html">
-      <button class="glow-btn" title="Daily Claim">Daily Claim</button>
-    </a>
-    <a href="buypanel.html">
-      <button class="glow-btn" title="Buy Panel">Buy Panel</button>
-    </a>
-  </header>
-
-
-  <!-- Preloader -->
-  <div id="preloader">
-    <video id="introVideo" autoplay muted loop playsinline>
-      <source src="https://files.catbox.moe/hdm9jl.mp4" type="video/mp4">
-    </video>
+    <!-- Daily claim button -->
+    <button class="claim-btn" onclick="window.location.href='dailyclaim.html'">
+      🎁 Claim Daily Reward
+    </button>
   </div>
 
-  <!-- Main Content -->
-  <div id="main-content">
-    <video id="background-video" class="background-video" autoplay muted loop playsinline>
-      <source src="" type="video/mp4">
-    </video>
-
-    <audio id="background-audio" loop>
-      <source src="https://files.catbox.moe/630st2.mp3" type="audio/mpeg">
-    </audio>
-  </div>
-
-  <!-- Centered Ads Overlay -->
-  <div id="center-ad-wrapper" style="display:none;">
-    <div id="center-ad" role="dialog" aria-label="Advertisement">
+  <!-- full overlay ad -->
+  <div id="ad-overlay" role="dialog" aria-hidden="true">
+    <div id="ad-card">
       <button id="ad-close" aria-label="Close ad">✕</button>
-      <div class="ad-viewport">
-        <div class="ad-track" id="ad-track"></div>
+      <div id="ad-inner" style="position:relative;overflow:hidden">
+        <div style="overflow:hidden">
+          <div id="ad-track" class="ad-track"></div>
+        </div>
+        <div id="ad-caption" class="ad-caption"></div>
       </div>
-      <div id="ad-dots"></div>
     </div>
   </div>
 
+  <!-- mini ad -->
+  <div id="mini-ad" title="Open ad">
+    <button id="mini-close" aria-label="Close mini ad">✕</button>
+    <div id="mini-thumb"></div>
+    <div id="mini-meta"></div>
+  </div>
+
+  <!-- firebase compat -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
   <script>
-    /* Preloader Logic */
-    const preloader = document.getElementById('preloader');
-    const mainContent = document.getElementById('main-content');
-    const introVideo = document.getElementById('introVideo');
+  // -------------------- Firebase Init --------------------
+  const firebaseConfig = {
+    apiKey: "AIzaSyAXZQi1Wdwf7oHRVapWNGgcCYtd4Dy5kQk",
+    authDomain: "eren-c4b30.firebaseapp.com",
+    projectId: "eren-c4b30",
+    storageBucket: "eren-c4b30.appspot.com",
+    messagingSenderId: "91279547740",
+    appId: "1:91279547740:web:11cc9f1eb5423f94993599",
+    measurementId: "G-LPF98ZZ527"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-    setTimeout(() => {
-      preloader.style.opacity = '0';
-    }, 9500);
-
-    setTimeout(() => {
-      introVideo.pause();
-      preloader.style.display = 'none';
-      mainContent.style.display = 'block';
-      document.body.style.overflow = 'auto';
-    }, 10000);
-
-    /* Background Video */
-    const videos = [
-      "https://files.catbox.moe/pdwp9z.mp4",
-      "https://files.catbox.moe/lb8x4t.mp4"
-    ];
-
-    const randomVideo = videos[Math.floor(Math.random() * videos.length)];
-    const bgVideo = document.getElementById("background-video");
-    bgVideo.querySelector("source").src = randomVideo;
-    bgVideo.setAttribute("playsinline", "true");
-    bgVideo.setAttribute("muted", "true");
-    bgVideo.setAttribute("autoplay", "true");
-    bgVideo.setAttribute("loop", "true");
-    bgVideo.load();
-
-    bgVideo.onerror = () => {
-      console.error("Background video failed to load.");
-    };
-
-    /* Background Audio */
-    const audio = document.getElementById("background-audio");
-
-    const playAudio = () => {
-      audio.play().catch(err => {
-        console.log("Autoplay blocked. Waiting for user interaction.");
-        document.addEventListener("click", playAudioOnce);
-        document.addEventListener("touchstart", playAudioOnce);
-      });
-    };
-
-    const playAudioOnce = () => {
-      audio.play().then(() => {
-        console.log("Audio playback started after user interaction.");
-        document.removeEventListener("click", playAudioOnce);
-        document.removeEventListener("touchstart", playAudioOnce);
-      }).catch(err => console.log("Audio playback failed:", err));
-    };
-
-    audio.addEventListener("canplaythrough", playAudio);
-
-    (function () {
-    const AdStore = {
-      loadAds: () => {
-        try {
-          const ads = JSON.parse(localStorage.getItem('ads')) || [];
-          return ads;
-        } catch (e) {
-          console.error('Failed to load ads from localStorage:', e);
-          return [];
-        }
-      },
-    };
-
-    const wrapper = document.getElementById('center-ad-wrapper');
-    const track = document.getElementById('ad-track');
-    const dots = document.getElementById('ad-dots');
-    const closeBtn = document.getElementById('ad-close');
-
-    let ads = [];
+  // -------------------- Time Sync --------------------
+  let serverOffset = 0;
+  async function syncServerTime() {
     try {
-      ads = AdStore.loadAds();
-    } catch (e) {
-      ads = [];
+      const ref = db.collection('serverTime').doc('now');
+      await ref.set({ ts: firebase.firestore.FieldValue.serverTimestamp() });
+      const snap = await ref.get();
+      const data = snap.data();
+      serverOffset = data?.ts?.toDate().getTime() - Date.now();
+    } catch(e) {
+      console.error('time sync failed', e);
+      serverOffset = 0;
     }
+  }
+  syncServerTime();
+  setInterval(syncServerTime, 5*60*1000);
 
-    if (!ads || !ads.length) {
-      wrapper.style.display = 'none';
-      return;
+  // -------------------- Ads Logic --------------------
+  let ads = [];
+  const adOverlay = document.getElementById('ad-overlay');
+  const adTrack = document.getElementById('ad-track');
+  const adCaption = document.getElementById('ad-caption');
+  const adClose = document.getElementById('ad-close');
+  const miniAd = document.getElementById('mini-ad');
+  const miniThumb = document.getElementById('mini-thumb');
+  const miniMeta = document.getElementById('mini-meta');
+  const miniClose = document.getElementById('mini-close');
+
+  const INITIAL_OVERLAY_DURATION = 10 * 1000; // 10s
+  const OVERLAY_SLIDE_INTERVAL = 2000; // 2s
+  const MINI_CYCLE_INTERVAL = 6000; // 6s
+  let firstAdShown=false, overlayTimer, overlaySlideTimer, miniTimer, overlayIndex=0;
+
+  db.collection('advertisements').orderBy('createdAt','desc').onSnapshot(snap=>{
+    ads = snap.docs.map(d=>({id:d.id,...d.data()}));
+    if (ads.length && !firstAdShown) {
+      firstAdShown=true; showOverlay();
     }
-
-    const MAX_DISPLAY = 3;
-    if (ads.length > MAX_DISPLAY) ads = ads.slice(0, MAX_DISPLAY);
-
-    let current = 0;
-    const INTERVAL = 3000;
-    let timer = null;
-
-    function buildSlides() {
-  track.innerHTML = '';
-  ads.forEach((ad) => {
-    const slide = document.createElement('div');
-    slide.className = 'ad-slide';
-
-    if (ad.type === 'text') {
-      // Create a container for text ads
-      const textContainer = document.createElement('div');
-      textContainer.style.color = '#fff';
-      textContainer.style.textAlign = 'center';
-      textContainer.style.padding = '20px';
-
-      // Add title if available
-      if (ad.meta.title) {
-        const title = document.createElement('h3');
-        title.textContent = ad.meta.title;
-        title.style.marginBottom = '10px';
-        textContainer.appendChild(title);
-      }
-
-      // Add the main text content
-      const textContent = document.createElement('p');
-      textContent.textContent = ad.payload;
-      textContainer.appendChild(textContent);
-
-      // Add a link if available
-      if (ad.meta.link) {
-        const link = document.createElement('a');
-        link.href = ad.meta.link;
-        link.textContent = 'Learn more';
-        link.target = '_blank';
-        link.style.display = 'block';
-        link.style.marginTop = '10px';
-        link.style.color = '#ffd166';
-        textContainer.appendChild(link);
-      }
-
-      slide.appendChild(textContainer);
-    } else if (ad.type === 'image') {
-      const link = document.createElement('a');
-      link.href = ad.meta.link || '#';
-      link.target = '_blank';
-      link.rel = 'noreferrer';
-      link.innerHTML = `<img src="${ad.payload}" alt="${ad.meta.title || 'Ad'}">`;
-
-      // Add text below the image
-      const text = document.createElement('p');
-      text.textContent = ad.meta.title || '';
-      text.style.color = '#fff';
-      text.style.textAlign = 'center';
-      text.style.marginTop = '10px';
-
-      slide.appendChild(link);
-      slide.appendChild(text);
-    } else if (ad.type === 'video') {
-      const videoWrapper = document.createElement('div');
-      videoWrapper.style.position = 'relative';
-
-      const video = document.createElement('video');
-      video.setAttribute('playsinline', 'true');
-      video.setAttribute('muted', 'true');
-      video.setAttribute('preload', 'metadata');
-      video.setAttribute('controls', 'true');
-      video.innerHTML = `<source src="${ad.payload}" type="video/mp4">`;
-
-      const link = document.createElement('a');
-      link.href = ad.meta.link || '#';
-      link.target = '_blank';
-      link.rel = 'noreferrer';
-      link.style.position = 'absolute';
-      link.style.inset = '0';
-      link.style.zIndex = '10';
-
-      videoWrapper.appendChild(video);
-      videoWrapper.appendChild(link);
-      slide.appendChild(videoWrapper);
-    }
-
-    track.appendChild(slide);
   });
-  wrapper.style.display = 'flex';
-}
 
-    function updateSlide() {
-      track.style.transform = `translateX(${-current * 100}%)`;
-      [...dots.children].forEach((dot, i) => dot.classList.toggle('active', i === current));
-    }
+  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
 
-    function nextSlide() {
-      current = (current + 1) % ads.length;
-      updateSlide();
-    }
-
-    function startTimer() {
-      timer = setInterval(nextSlide, INTERVAL);
-    }
-
-    function stopTimer() {
-      clearInterval(timer);
-    }
-
-    closeBtn.addEventListener('click', () => {
-      stopTimer();
-      wrapper.style.display = 'none';
+  function buildSlides(){
+    adTrack.innerHTML=''; if(!ads.length)return;
+    const arr=[...ads]; shuffle(arr);
+    arr.forEach(a=>{
+      const slide=document.createElement('div'); slide.className='ad-slide';
+      if(a.type==='image'){const link=document.createElement('a'); link.href=a.meta?.link||'#'; link.target='_blank';
+        const img=document.createElement('img'); img.src=a.payload||''; link.appendChild(img); slide.appendChild(link);}
+      else if(a.type==='video'){const v=document.createElement('video'); v.src=a.payload||''; v.controls=true; slide.appendChild(v);}
+      else{const t=document.createElement('div'); t.textContent=a.payload||''; slide.appendChild(t);}
+      adTrack.appendChild(slide);
     });
+    adTrack.style.transform='translateX(0%)'; overlayIndex=0;
+    adCaption.textContent=arr[0]?.meta?.title||'';
+  }
 
+  function showOverlay(){
+    if(!ads.length)return;
     buildSlides();
-    startTimer();
-  })();
+    adOverlay.style.display='flex';
+    overlaySlideTimer=setInterval(nextSlide,OVERLAY_SLIDE_INTERVAL);
+    overlayTimer=setTimeout(()=>hideOverlay(),INITIAL_OVERLAY_DURATION);
+  }
+
+  function nextSlide(){
+    const slides=adTrack.children.length; if(!slides)return;
+    overlayIndex=(overlayIndex+1)%slides;
+    adTrack.style.transform=`translateX(${-overlayIndex*100}%)`;
+  }
+
+  function hideOverlay(){
+    clearInterval(overlaySlideTimer); clearTimeout(overlayTimer);
+    adOverlay.style.display='none'; showMini();
+  }
+  adClose.onclick=hideOverlay;
+
+  function renderMini(ad){
+    miniThumb.innerHTML='';
+    miniMeta.textContent=ad.meta?.title||'Ad';
+    if(ad.type==='image'){
+      const a=document.createElement('a'); a.href=ad.meta?.link||'#'; a.target='_blank';
+      const img=document.createElement('img'); img.src=ad.payload||''; a.appendChild(img); miniThumb.appendChild(a);
+    } else if(ad.type==='video'){
+      const txt=document.createElement('div'); txt.textContent='Video'; txt.style.color='#fff'; miniThumb.appendChild(txt);
+    } else {
+      const txt=document.createElement('div'); txt.textContent=ad.payload||''; txt.style.color='#fff'; miniThumb.appendChild(txt);
+    }
+  }
+
+  function showMini(){
+    if(!ads.length)return;
+    miniAd.style.display='block';
+    let idx=0; renderMini(ads[idx]);
+    clearInterval(miniTimer);
+    miniTimer=setInterval(()=>{idx=(idx+1)%ads.length; renderMini(ads[idx]);},MINI_CYCLE_INTERVAL);
+  }
+  miniClose.onclick=e=>{e.stopPropagation(); miniAd.style.display='none'; clearInterval(miniTimer);};
+  miniAd.onclick=e=>{if(e.target.id!=='mini-close'){showOverlay();}};
   </script>
-  <!-- ===== Fancy Floating Contact Buttons ===== -->
-<style>
-  .contact-float {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    z-index: 9999;
-  }
-
-  .contact-float a {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    background: linear-gradient(135deg, #0f1724 0%, #0b1220 100%);
-    box-shadow: 0 0 20px rgba(0,0,0,0.5), 0 0 15px rgba(37,211,102,0.2);
-    text-decoration: none;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-
-  .contact-float a::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 60%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .contact-float a:hover::before {
-    opacity: 1;
-  }
-
-  .contact-float a:hover {
-    transform: scale(1.1) rotate(3deg);
-    box-shadow: 0 0 25px rgba(255,255,255,0.2), 0 0 30px var(--glow, rgba(255,255,255,0.3));
-  }
-
-  .contact-float svg {
-    width: 28px;
-    height: 28px;
-    fill: currentColor;
-    z-index: 2;
-  }
-
-  .whatsapp-float {
-    --glow: rgba(37,211,102,0.8);
-    background: linear-gradient(135deg, #25D366, #1ebe57);
-  }
-
-  .telegram-float {
-    --glow: rgba(0,136,204,0.8);
-    background: linear-gradient(135deg, #0088cc, #00a0e6);
-  }
-
-  /* Soft pulse animation */
-  @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 15px var(--glow, rgba(255,255,255,0.2)); }
-    50% { box-shadow: 0 0 25px var(--glow, rgba(255,255,255,0.6)); }
-  }
-  .contact-float a {
-    animation: pulse 2.4s infinite;
-  }
-</style>
-
-<div class="contact-float">
-  <!-- WhatsApp -->
-  <a href="https://wa.me/13603903303?text=Hello%20Admin%2C%20I%20need%20assistance" 
-     target="_blank" 
-     class="whatsapp-float" 
-     aria-label="Chat on WhatsApp">
-    <svg viewBox="0 0 24 24">
-      <path d="M20.5 3.5A11.9 11.9 0 0 0 12 1C6 1 1.5 5.5 1.5 11.5c0 2 .5 3.8 1.5 5.4L1 23l6.3-2.1c1.6.9 3.5 1.4 5.7 1.4 6 0 10.5-4.5 10.5-10.5 0-3-1.2-5.8-3.5-7.3z" fill="#fff"/>
-    </svg>
-  </a>
-
-  <!-- Telegram -->
-  <a href="https://t.me/@Er3n_2k7" 
-     target="_blank" 
-     class="telegram-float" 
-     aria-label="Message on Telegram">
-    <svg viewBox="0 0 24 24">
-      <path d="M22 2L2 9.2l5.6 2.1L9.6 20 13 14l6.9-9.3z" fill="#fff"/>
-    </svg>
-  </a>
-</div>
-
 </body>
 </html>
