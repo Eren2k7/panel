@@ -3,14 +3,16 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Daily Claims — Eren Panel</title>
+  <title>Daily Claims — Eren Panel (with ads)</title>
   <style>
-    :root { --bg:#071022; --card:#0f1724; --muted:#9fbddf; --accent:#ffd166; }
+    :root{
+      --bg:#071022; --card:#0f1724; --muted:#9fbddf; --accent:#ffd166;
+      --mini-size:110px;
+    }
     body{margin:0;font-family:Poppins,system-ui,Arial;background:var(--bg);color:#eaf6ff}
     .wrap{max-width:980px;margin:24px auto;padding:18px}
     .card{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.6)}
     h1{margin:0 0 12px}
-    .fields{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
     .label{color:var(--muted);font-size:13px}
     .value{font-weight:800}
     .blurred{filter:blur(6px);user-select:none;pointer-events:none}
@@ -18,21 +20,37 @@
     .meta{display:flex;justify-content:space-between;align-items:center;margin-top:12px;color:var(--muted)}
     .countdown{font-weight:800;color:var(--accent)}
     a.link { color:#9fd6ff; text-decoration:underline }
-    /* ad overlay */
-    #ad-overlay { position:fixed; inset:0; display:flex;align-items:center;justify-content:center; z-index:20000; pointer-events:none; }
-    #ad-card { width:min(92vw,760px); background:#081226; border-radius:12px; padding:12px; pointer-events:auto; box-shadow:0 18px 60px rgba(0,0,0,.7) }
-    #ad-close { position:absolute; top:8px; right:10px; background:rgba(0,0,0,.35); border:none; color:#fff; font-size:18px; padding:6px 8px; border-radius:6px; cursor:pointer }
-    .ad-content img, .ad-content video { width:100%; height:auto; border-radius:8px; display:block; }
-    .ad-text { color:#fff; font-size:16px; padding:6px 0; }
-    /* small */
-    .small { color:var(--muted); font-size:13px }
+    .small{color:var(--muted);font-size:13px}
+
+    /* Full-screen ad overlay */
+    #ad-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;background:rgba(0,0,0,0.55)}
+    #ad-card{width:min(92vw,900px);background:#081226;border-radius:12px;padding:10px;position:relative;overflow:hidden}
+    #ad-close{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.35);border:none;color:#fff;font-size:18px;padding:6px 9px;border-radius:6px;cursor:pointer}
+    .ad-track {
+      display: flex;
+      transition: transform 0.45s ease-in-out;
+      will-change: transform;
+    }
+    .ad-slide{min-width:100%;padding:8px;box-sizing:border-box}
+    .ad-slide img, .ad-slide video{width:100%;height:auto;border-radius:8px;display:block}
+    .ad-caption{text-align:center;color:#fff;padding:8px 6px;font-weight:700}
+
+    /* mini corner ad */
+    #mini-ad{position:fixed;z-index:9998;width:var(--mini-size);height:var(--mini-size);right:18px;bottom:18px;background:#081226;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.6);display:none;overflow:hidden;cursor:pointer}
+    #mini-thumb{width:100%;height:66%;background:#011;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    #mini-thumb img, #mini-thumb video{max-width:100%;max-height:100%;display:block}
+    #mini-meta{padding:6px;font-size:13px;color:var(--muted);height:34%}
+    #mini-close{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.35);border:none;color:#fff;padding:4px;border-radius:6px;font-size:12px;cursor:pointer}
+
+    /* small helper */
+    .sr-only{position:absolute;left:-9999px}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
       <h1>Daily Panel Reveal</h1>
-      <p class="small">Panels unblur for 5 minutes every 12 hours (server time). Ads appear periodically and are synced from admin.</p>
+      <p class="small">Panels unblur for 5 minutes every 12 hours (server time). Ads are displayed from admin and cycle automatically.</p>
 
       <div id="no-panels" class="small" style="display:none">No panels available right now.</div>
 
@@ -49,22 +67,33 @@
     </div>
   </div>
 
-  <!-- ad overlay (hidden by default) -->
-  <div id="ad-overlay" style="display:none">
-    <div id="ad-card" role="dialog" aria-label="Advertisement">
+  <!-- full overlay ad -->
+  <div id="ad-overlay" role="dialog" aria-hidden="true">
+    <div id="ad-card">
       <button id="ad-close" aria-label="Close ad">✕</button>
-      <div class="ad-content" id="ad-content"></div>
-      <div style="margin-top:8px;text-align:center" id="ad-caption"></div>
+      <div id="ad-inner" style="position:relative;overflow:hidden">
+        <div style="overflow:hidden">
+          <div id="ad-track" class="ad-track"></div>
+        </div>
+        <div id="ad-caption" class="ad-caption"></div>
+      </div>
     </div>
   </div>
 
-  <!-- firebase compat SDKs -->
+  <!-- mini ad -->
+  <div id="mini-ad" title="Open ad">
+    <button id="mini-close" aria-label="Close mini ad">✕</button>
+    <div id="mini-thumb"></div>
+    <div id="mini-meta"></div>
+  </div>
+
+  <!-- firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
   <script>
   /***********************
-   * Configuration
+   * Config
    ***********************/
   const firebaseConfig = {
     apiKey: "AIzaSyAXZQi1Wdwf7oHRVapWNGgcCYtd4Dy5kQk",
@@ -75,49 +104,36 @@
     appId: "1:91279547740:web:11cc9f1eb5423f94993599",
     measurementId: "G-LPF98ZZ527"
   };
-
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  // serverOffset to align client clocks to server
-  let serverOffset = 0; // ms (serverTime - localTime)
-
   /***********************
-   * SERVER TIME SYNC
-   * We write a doc with serverTimestamp then read it back to compute offset.
+   * Server time sync
    ***********************/
-  async function syncServerTime() {
+  let serverOffset = 0; // ms
+  async function syncServerTime(){
     try {
       const ref = db.collection('serverTime').doc('now');
-      // write server timestamp
       await ref.set({ ts: firebase.firestore.FieldValue.serverTimestamp() });
-      // read back
       const snap = await ref.get();
       const data = snap.data();
-      if (!data || !data.ts) {
-        console.warn('Server timestamp not yet available — using local time fallback.');
-        serverOffset = 0;
-        return;
-      }
-      const serverMs = data.ts.toDate().getTime();
-      serverOffset = serverMs - Date.now();
-      console.log('Server time synced. Offset (ms):', serverOffset);
-    } catch (e) {
-      console.error('Time sync failed, using local time:', e);
+      if (!data || !data.ts) { serverOffset = 0; return; }
+      serverOffset = data.ts.toDate().getTime() - Date.now();
+      console.log('serverOffset', serverOffset);
+    } catch(e) {
+      console.error('time sync failed', e);
       serverOffset = 0;
     }
   }
-
-  // run sync once on load, then refresh every 5 minutes to reduce drift
   syncServerTime();
   setInterval(syncServerTime, 5 * 60 * 1000);
 
   /***********************
-   * PANELS logic
+   * Panels logic (same schedule)
    ***********************/
-  const KEY_CLAIMS = 'daily_claims'; // local backup if you ever want it
-  let panels = []; // array of panel objects { email, password, panel_url, createdAt }
-
+  const REVEAL_INTERVAL = 12 * 3600 * 1000; // 12h
+  const REVEAL_DURATION = 5 * 60 * 1000; // 5min
+  let panels = [];
   const elNoPanels = document.getElementById('no-panels');
   const elPanelCard = document.getElementById('panel-card');
   const elEmail = document.getElementById('d-email');
@@ -126,246 +142,275 @@
   const elCountdown = document.getElementById('countdown');
   const elDur = document.getElementById('dur');
 
-  // load from Firestore in real-time and keep local panels array updated
-  db.collection('panels').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-    panels = snapshot.docs.map(doc => {
-      const d = doc.data();
-      return { id: doc.id, email: d.email || '', password: d.password || '', panel_url: d.panel_url || '', createdAt: d.createdAt || null };
+  db.collection('panels').orderBy('createdAt','desc').onSnapshot(snap=>{
+    panels = snap.docs.map(d=> {
+      const v = d.data();
+      return { id: d.id, email: v.email||'', password: v.password||'', panel_url: v.panel_url||'', createdAt: v.createdAt||null };
     });
-    // update UI immediately
     renderPanel();
-  }, err => {
-    console.error('Failed to load panels:', err);
-  });
+  }, err=> console.error('panels listen failed', err));
 
-  function renderPanel() {
-    if (!panels.length) {
-      elNoPanels.style.display = 'block';
-      elPanelCard.style.display = 'none';
-      return;
-    }
-    elNoPanels.style.display = 'none';
-    elPanelCard.style.display = 'block';
-    showPanel(panels[0]);
+  function renderPanel(){
+    if (!panels.length) { elNoPanels.style.display='block'; elPanelCard.style.display='none'; return; }
+    elNoPanels.style.display='none'; elPanelCard.style.display='block';
+    const p = panels[0];
+    elEmail.textContent = p.email || '—';
+    elPass.textContent = p.password || '—';
+    elUrl.innerHTML = p.panel_url ? `<a class="link" href="${p.panel_url}" target="_blank" rel="noreferrer">${p.panel_url}</a>` : '—';
   }
 
-  function showPanel(panel) {
-    elEmail.textContent = panel.email || '—';
-    elPass.textContent = panel.password || '—';
-    elUrl.innerHTML = panel.panel_url ? `<a class="link" href="${panel.panel_url}" target="_blank" rel="noreferrer">${panel.panel_url}</a>` : '—';
-  }
-
-  function formatHMS(seconds) {
-    seconds = Math.max(0, Math.floor(seconds));
-    const h = Math.floor(seconds / 3600).toString().padStart(2,'0');
-    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2,'0');
-    const s = (seconds % 60).toString().padStart(2,'0');
+  function formatHMS(sec){
+    sec = Math.max(0, Math.floor(sec));
+    const h = Math.floor(sec/3600).toString().padStart(2,'0');
+    const m = Math.floor((sec%3600)/60).toString().padStart(2,'0');
+    const s = (sec%60).toString().padStart(2,'0');
     return `${h}:${m}:${s}`;
   }
 
-  // Reveal schedule: every 12 hours, for 5 minutes.
-  const REVEAL_INTERVAL = 12 * 3600 * 1000; // 12 hours in ms
-  const REVEAL_DURATION = 5 * 60 * 1000; // 5 minutes in ms
-
-  function tickPanels() {
-    // use server-corrected "now"
+  function tickPanels(){
     const now = Date.now() + serverOffset;
-    if (!panels.length) {
-      elNoPanels.style.display = 'block';
-      elPanelCard.style.display = 'none';
-      return;
-    }
-    elNoPanels.style.display = 'none';
-    elPanelCard.style.display = 'block';
-
-    // align reveals to multiples of REVEAL_INTERVAL since epoch
+    if (!panels.length) { elNoPanels.style.display='block'; elPanelCard.style.display='none'; return; }
+    elNoPanels.style.display='none'; elPanelCard.style.display='block';
     const lastReveal = Math.floor(now / REVEAL_INTERVAL) * REVEAL_INTERVAL;
     const revealEnd = lastReveal + REVEAL_DURATION;
     const nextReveal = lastReveal + REVEAL_INTERVAL;
 
     if (now >= lastReveal && now < revealEnd) {
-      // currently in reveal window -> unblur
       elEmail.classList.remove('blurred'); elEmail.classList.add('unblur');
       elPass.classList.remove('blurred'); elPass.classList.add('unblur');
       elUrl.classList.remove('blurred'); elUrl.classList.add('unblur');
-
-      const secsLeft = Math.ceil((revealEnd - now) / 1000);
+      const secsLeft = Math.ceil((revealEnd - now)/1000);
       elCountdown.textContent = formatHMS(secsLeft);
     } else {
-      // not in reveal -> blur
       elEmail.classList.add('blurred'); elEmail.classList.remove('unblur');
       elPass.classList.add('blurred'); elPass.classList.remove('unblur');
       elUrl.classList.add('blurred'); elUrl.classList.remove('unblur');
-
-      const secsToReveal = Math.ceil((nextReveal - now) / 1000);
-      elCountdown.textContent = formatHMS(secsToReveal);
+      const secsTo = Math.ceil((nextReveal - now)/1000);
+      elCountdown.textContent = formatHMS(secsTo);
     }
   }
-
-  // run tickPanels every second
   setInterval(tickPanels, 1000);
   tickPanels();
 
   /***********************
-   * ADS logic
+   * Ads logic (overlay + mini)
    ***********************/
-  let ads = []; // live array of ads from Firestore
+  let ads = []; // live from firestore
+  let firstAdShown = false;
+
   const adOverlay = document.getElementById('ad-overlay');
-  const adContent = document.getElementById('ad-content');
+  const adTrack = document.getElementById('ad-track');
   const adCaption = document.getElementById('ad-caption');
   const adClose = document.getElementById('ad-close');
 
-  let adTimer = null;
-  let nextAdTimeout = null;
+  const miniAd = document.getElementById('mini-ad');
+  const miniThumb = document.getElementById('mini-thumb');
+  const miniMeta = document.getElementById('mini-meta');
+  const miniClose = document.getElementById('mini-close');
 
-  // Settings
-  const FIRST_AD_DURATION = 10 * 1000; // 10 seconds on initial load
-  const REAPPEAR_MIN = 30 * 1000; // 30s
-  const REAPPEAR_MAX = 90 * 1000; // 90s
+  // timings (customizable)
+  const INITIAL_OVERLAY_DURATION = 10 * 1000; // show overlay for 10s initially
+  const OVERLAY_SLIDE_INTERVAL = 2000; // swipe every 2s while overlay shown
+  const MINI_CYCLE_INTERVAL = 6000; // mini ad cycles every 6s
+  const REAPPEAR_MIN = 30 * 1000; // not used (we keep mini visible), left as option
 
-  // helper: shuffle array (Fisher-Yates)
-  function shuffleInPlace(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+  // internal timers
+  let overlaySlideTimer = null;
+  let overlayHideTimer = null;
+  let overlayCurrentIndex = 0;
+  let miniCycleTimer = null;
+
+  // Helper: normalize ad doc
+  function normalizeAdDoc(doc){
+    const d = doc.data();
+    return { id: doc.id, type: d.type || 'image', payload: d.payload || '', meta: d.meta || {}, createdAt: d.createdAt || null };
+  }
+
+  // onSnapshot for advertisements
+  db.collection('advertisements').orderBy('createdAt','desc').onSnapshot(snapshot=>{
+    ads = snapshot.docs.map(normalizeAdDoc);
+    // if overlay not shown yet and we have ads, show initial overlay
+    if (ads.length && !firstAdShown) {
+      firstAdShown = true;
+      showOverlayWithSwipe(INITIAL_OVERLAY_DURATION);
+    }
+    // if ads exist and mini is visible, update mini to reflect new set
+    updateMini();
+  }, err=> console.error('ads listen failed', err));
+
+  // build ad slides into track
+  function buildAdSlides() {
+    adTrack.innerHTML = '';
+    if (!ads.length) return;
+    // shuffle per display so it's randomized each time
+    const arr = [...ads];
+    shuffleInPlace(arr);
+    arr.forEach(a=>{
+      const slide = document.createElement('div');
+      slide.className = 'ad-slide';
+      // content for each type
+      if (a.type === 'text') {
+        const d = document.createElement('div'); d.className='ad-text'; d.textContent = a.payload || ''; d.style.color='#fff'; slide.appendChild(d);
+      } else if (a.type === 'image') {
+        const aEl = document.createElement('a'); aEl.href = a.meta?.link || '#'; aEl.target = '_blank'; aEl.rel='noreferrer';
+        const img = document.createElement('img'); img.src = a.payload || ''; img.alt = a.meta?.title || 'Ad';
+        aEl.appendChild(img); slide.appendChild(aEl);
+      } else if (a.type === 'video') {
+        const isYouTube = /youtube\.com|youtu\.be/.test(a.payload || '');
+        if (isYouTube) {
+          const match = a.payload.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+          const vId = match ? match[1] : null;
+          if (vId) {
+            const iframe = document.createElement('iframe');
+            iframe.width = '100%'; iframe.height = '420'; iframe.src = 'https://www.youtube.com/embed/' + vId + '?rel=0';
+            iframe.frameBorder = '0'; iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'; iframe.allowFullscreen = true;
+            slide.appendChild(iframe);
+          } else {
+            const p = document.createElement('div'); p.textContent = 'Invalid YouTube link'; slide.appendChild(p);
+          }
+        } else {
+          const aEl = document.createElement('a'); aEl.href = a.meta?.link || '#'; aEl.target = '_blank'; aEl.rel='noreferrer';
+          const v = document.createElement('video'); v.src = a.payload || ''; v.controls = true; v.style.width='100%';
+          aEl.appendChild(v); slide.appendChild(aEl);
+        }
+      }
+      adTrack.appendChild(slide);
+    });
+    // caption set to first ad title if any
+    adCaption.textContent = (ads[0] && ads[0].meta && ads[0].meta.title) ? ads[0].meta.title : '';
+    // reset transform
+    adTrack.style.transform = `translateX(0%)`;
+    overlayCurrentIndex = 0;
+  }
+
+  // shuffle helper
+  function shuffleInPlace(arr){
+    for (let i = arr.length-1; i > 0; i--) {
+      const j = Math.floor(Math.random()*(i+1));
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
   }
 
-  // subscribe to advertisements collection
-  db.collection('advertisements').orderBy('createdAt','desc').onSnapshot(snapshot => {
-    ads = snapshot.docs.map(doc => {
-      const d = doc.data();
-      return { id: doc.id, type: d.type, payload: d.payload, meta: d.meta || {}, createdAt: d.createdAt || null };
-    });
-    // start showing an ad on first load only if overlay currently hidden
-    if (ads.length && adOverlay.style.display === 'none') {
-      // show immediately for 10s
-      showAdOnce(FIRST_AD_DURATION);
-    }
-  }, err => {
-    console.error('Failed to load ads:', err);
-  });
-
-  // Render a given ad object into overlay
-  function renderAd(ad) {
-    adContent.innerHTML = '';
-    adCaption.textContent = '';
-    if (!ad) return;
-
-    if (ad.type === 'text') {
-      const p = document.createElement('div');
-      p.className = 'ad-text';
-      p.textContent = ad.payload || '';
-      adContent.appendChild(p);
-    } else if (ad.type === 'image') {
-      const a = document.createElement('a');
-      a.href = ad.meta?.link || '#';
-      a.target = '_blank';
-      a.rel = 'noreferrer';
-      const img = document.createElement('img');
-      img.src = ad.payload || '';
-      img.alt = ad.meta?.title || 'Ad';
-      a.appendChild(img);
-      adContent.appendChild(a);
-    } else if (ad.type === 'video') {
-      // payload could be mp4 url or youtube link
-      const isYouTube = /youtube\.com|youtu\.be/.test(ad.payload || '');
-      if (isYouTube) {
-        // parse id
-        const match = ad.payload.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
-        const vId = match ? match[1] : null;
-        if (vId) {
-          const iframe = document.createElement('iframe');
-          iframe.width = '100%';
-          iframe.height = '420';
-          iframe.src = 'https://www.youtube.com/embed/' + vId + '?rel=0';
-          iframe.frameBorder = '0';
-          iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-          iframe.allowFullscreen = true;
-          adContent.appendChild(iframe);
-        } else {
-          const p = document.createElement('div'); p.textContent = 'Invalid YouTube link'; adContent.appendChild(p);
-        }
-      } else {
-        const a = document.createElement('a');
-        a.href = ad.meta?.link || '#';
-        a.target = '_blank';
-        a.rel = 'noreferrer';
-        const v = document.createElement('video');
-        v.src = ad.payload || '';
-        v.controls = true;
-        v.autoplay = false;
-        v.style.width = '100%';
-        a.appendChild(v);
-        adContent.appendChild(a);
-      }
-    }
-
-    if (ad.meta && ad.meta.title) adCaption.textContent = ad.meta.title;
-  }
-
-  // show overlay for given ms, then hide
-  function showAdForMs(ms, adObj) {
-    if (!adObj) return;
-    renderAd(adObj);
+  // show overlay and start swipe timer
+  function showOverlayWithSwipe(durationMs){
+    if (!ads.length) return;
+    buildAdSlides();
     adOverlay.style.display = 'flex';
-    // clear any existing timers
-    if (adTimer) { clearTimeout(adTimer); adTimer = null; }
-    if (nextAdTimeout) { clearTimeout(nextAdTimeout); nextAdTimeout = null; }
+    adOverlay.setAttribute('aria-hidden','false');
 
-    adTimer = setTimeout(() => {
-      hideAd();
-      scheduleNextAdRandom();
-    }, ms);
+    // start slide timer
+    if (overlaySlideTimer) clearInterval(overlaySlideTimer);
+    overlaySlideTimer = setInterval(()=>{
+      nextOverlaySlide();
+    }, OVERLAY_SLIDE_INTERVAL);
+
+    // hide overlay after durationMs
+    if (overlayHideTimer) clearTimeout(overlayHideTimer);
+    overlayHideTimer = setTimeout(()=>{
+      hideOverlayAndShowMini();
+    }, durationMs);
   }
 
-  // hide immediately
-  function hideAd() {
+  function nextOverlaySlide(){
+    const slides = adTrack.children.length;
+    if (!slides) return;
+    overlayCurrentIndex = (overlayCurrentIndex + 1) % slides;
+    adTrack.style.transform = `translateX(${-overlayCurrentIndex * 100}%)`;
+    // update caption to the current ad's title if available
+    const adIndex = overlayCurrentIndex % ads.length;
+    const maybe = ads[adIndex];
+    adCaption.textContent = maybe && maybe.meta && maybe.meta.title ? maybe.meta.title : '';
+  }
+
+  function hideOverlayAndShowMini(){
+    // stop timers
+    if (overlaySlideTimer) { clearInterval(overlaySlideTimer); overlaySlideTimer = null; }
+    if (overlayHideTimer) { clearTimeout(overlayHideTimer); overlayHideTimer = null; }
     adOverlay.style.display = 'none';
-    adContent.innerHTML = '';
-    adCaption.textContent = '';
-    if (adTimer) { clearTimeout(adTimer); adTimer = null; }
+    adOverlay.setAttribute('aria-hidden','true');
+    // show mini
+    showMini();
   }
 
-  adClose.addEventListener('click', () => {
-    hideAd();
-    scheduleNextAdRandom();
+  // close overlay (user click) -> show mini
+  adClose.addEventListener('click', ()=>{
+    hideOverlayAndShowMini();
   });
 
-  // show one ad now (choose random ad)
-  function showAdOnce(durationMs = FIRST_AD_DURATION) {
+  // MINI logic
+  function showMini(){
     if (!ads.length) return;
-    const shuffled = [...ads];
-    shuffleInPlace(shuffled);
-    const ad = shuffled[0];
-    showAdForMs(durationMs, ad);
+    // pick first shuffle order for mini rotation
+    const miniOrder = [...ads];
+    shuffleInPlace(miniOrder);
+    let idx = 0;
+    renderMiniAd(miniOrder[idx]);
+    miniAd.style.display = 'block';
+
+    // clear existing timer
+    if (miniCycleTimer) clearInterval(miniCycleTimer);
+    miniCycleTimer = setInterval(()=>{
+      idx = (idx + 1) % miniOrder.length;
+      renderMiniAd(miniOrder[idx]);
+    }, MINI_CYCLE_INTERVAL);
+
+    // clicking mini opens full overlay again
+    miniAd.onclick = (e) => {
+      // avoid if user clicked the mini-close button
+      if (e.target && (e.target.id === 'mini-close')) return;
+      // open overlay and show swiping again for 10s
+      showOverlayWithSwipe(INITIAL_OVERLAY_DURATION);
+    };
   }
 
-  // schedule a next ad at random delay between REAPPEAR_MIN and REAPPEAR_MAX
-  function scheduleNextAdRandom() {
-    if (!ads.length) return;
-    const delay = REAPPEAR_MIN + Math.floor(Math.random() * (REAPPEAR_MAX - REAPPEAR_MIN));
-    if (nextAdTimeout) { clearTimeout(nextAdTimeout); nextAdTimeout = null; }
-    nextAdTimeout = setTimeout(() => {
-      // choose a random ad and show for 10s (could be customized)
-      const shuffled = [...ads];
-      shuffleInPlace(shuffled);
-      // if multiple ads, show them in rotation quickly (shuffle ensures random order)
-      showAdForMs(10000, shuffled[0]);
-    }, delay);
-  }
+  // hide mini ad
+  miniClose.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    miniAd.style.display = 'none';
+    if (miniCycleTimer) { clearInterval(miniCycleTimer); miniCycleTimer = null; }
+  });
 
-  // If ads already loaded on page open, show initial ad
-  // (if ads arrive later onSnapshot they trigger show inside onSnapshot)
-  // Use a small timeout to ensure serverOffset may have been calculated (optional)
-  setTimeout(() => {
-    if (ads.length) showAdOnce(FIRST_AD_DURATION);
-    else {
-      // no ads yet — will show when snapshot arrives
+  // update mini content from ad object
+  function renderMiniAd(adObj){
+    if (!adObj) return;
+    miniThumb.innerHTML = '';
+    miniMeta.textContent = adObj.meta && adObj.meta.title ? adObj.meta.title : (adObj.type || '').toUpperCase();
+    if (adObj.type === 'image') {
+      const a = document.createElement('a'); a.href = adObj.meta?.link || '#'; a.target='_blank'; a.rel='noreferrer';
+      const img = document.createElement('img'); img.src = adObj.payload || ''; a.appendChild(img);
+      miniThumb.appendChild(a);
+    } else if (adObj.type === 'video') {
+      // if mp4 show video; if youtube show thumbnail text
+      if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(adObj.payload||'')) {
+        const a = document.createElement('a'); a.href = adObj.meta?.link||'#'; a.target='_blank'; a.rel='noreferrer';
+        const v = document.createElement('video'); v.src = adObj.payload||''; v.muted = true; v.playsInline=true; v.style.maxWidth='100%'; v.style.maxHeight='100%';
+        a.appendChild(v); miniThumb.appendChild(a);
+      } else {
+        const txt = document.createElement('div'); txt.textContent = 'Video'; txt.style.color='#fff'; miniThumb.appendChild(txt);
+      }
+    } else {
+      const txt = document.createElement('div'); txt.textContent = adObj.payload||''; txt.style.color='#fff'; miniThumb.appendChild(txt);
     }
-    // schedule next regardless so ad loop is running
-    scheduleNextAdRandom();
-  }, 1000);
+  }
+
+  // If no overlay shown (no ads on load), mini will show when ads arrive (handled in onSnapshot)
+  // If overlay is hidden but mini already visible and ads changed, update mini
+  function updateMini(){
+    if (miniAd.style.display === 'block') {
+      // replace current mini display with new ads list
+      // simply render first ad
+      if (ads.length) renderMiniAd(ads[0]);
+    }
+  }
+
+  // show initial overlay after a tiny delay to allow time-sync to complete
+  setTimeout(()=> {
+    if (ads.length && !firstAdShown) {
+      firstAdShown = true;
+      showOverlayWithSwipe(INITIAL_OVERLAY_DURATION);
+    }
+    // ensure mini will appear eventually if overlay closed
+  }, 1200);
 
   </script>
 </body>
