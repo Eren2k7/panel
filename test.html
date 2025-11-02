@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin Login — Eren Panel</title>
+  <style>
+    body{font-family:Inter,system-ui,Arial;background:#071022;color:#eaf6ff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}
+    .box{background:#0f1724;padding:28px;border-radius:12px;max-width:420px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+    label{display:block;margin-top:12px;color:#9fbddf;font-size:13px}
+    input{width:100%;padding:10px;border-radius:8px;border:1px solid #21304a;background:#071426;color:#eaf6ff}
+    button{margin-top:16px;padding:12px 14px;border-radius:8px;border:none;background:#2b9cff;color:#02102a;font-weight:700;cursor:pointer}
+    .muted{color:#9fbddf;margin-top:8px;font-size:13px}
+    .spinner{display:inline-block;width:14px;height:14px;border-radius:50%;border:3px solid rgba(255,255,255,0.15);border-top-color:#ffd166;animation:spin .9s linear infinite;vertical-align:middle;margin-right:8px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <div class="box" role="main">
+    <h2>Admin Login</h2>
+    <div id="status" class="muted">Sign in with your admin email to request approval.</div>
+
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="username"/>
+
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password"/>
+
+    <button id="signin">Sign in & Request Approval</button>
+
+    <div id="waiting" style="display:none;margin-top:14px" class="muted">
+      <span class="spinner" aria-hidden="true"></span>
+      Waiting for owner approval...
+      <div style="margin-top:8px;font-size:13px;color:#ffcf66">You can cancel the request in <span id="countdown">05:00</span></div>
+      <div style="margin-top:8px"><button id="cancel" style="background:#ff6b6b;color:#fff;padding:8px 10px;border-radius:6px;border:none;cursor:pointer">Cancel Request</button></div>
+    </div>
+  </div>
+
+  <!-- Firebase compat -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <script>
+  // ---------- REPLACE THIS WITH YOUR firebaseConfig ----------
+  const firebaseConfig = {
+    apiKey: "AIzaSyAXZQi1Wdwf7oHRVapWNGgcCYtd4Dy5kQk",
+    authDomain: "eren-c4b30.firebaseapp.com",
+    projectId: "eren-c4b30",
+    storageBucket: "eren-c4b30.appspot.com",
+    messagingSenderId: "91279547740",
+    appId: "1:91279547740:web:11cc9f1eb5423f94993599",
+    measurementId: "G-LPF98ZZ527"
+  };
+  // ---------------------------------------------------------
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  const signinBtn = document.getElementById('signin');
+  const emailIn = document.getElementById('email');
+  const passIn = document.getElementById('password');
+  const statusEl = document.getElementById('status');
+  const waitingEl = document.getElementById('waiting');
+  const cancelBtn = document.getElementById('cancel');
+  const countdownEl = document.getElementById('countdown');
+
+  let currentRequestDocId = null;
+  let requestUnsub = null;
+  let countdownTimer = null;
+
+  function formatHMS(sec){
+    sec = Math.max(0, Math.floor(sec));
+    const m = Math.floor(sec/60).toString().padStart(2,'0');
+    const s = (sec%60).toString().padStart(2,'0');
+    return `${m}:${s}`;
+  }
+
+  // create login request doc and wait for owner's approval
+  async function createLoginRequest(user) {
+    // unique doc id: uid + timestamp
+    const id = `${user.uid}_${Date.now()}`;
+    currentRequestDocId = id;
+
+    const docRef = db.collection('loginRequests').doc(id);
+    // request payload - only set status = 'pending' (clients cannot set approved/denied in rules)
+    await docRef.set({
+      uid: user.uid,
+      email: user.email,
+      status: 'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // show waiting UI
+    statusEl.textContent = 'Approval requested — waiting for owner';
+    waitingEl.style.display = 'block';
+
+    // start 5 minute countdown
+    const MAX_WAIT_SEC = 5 * 60;
+    let remaining = MAX_WAIT_SEC;
+    countdownEl.textContent = formatHMS(remaining);
+    countdownTimer = setInterval(()=>{
+      remaining--;
+      countdownEl.textContent = formatHMS(remaining);
+      if (remaining <= 0) {
+        clearInterval(countdownTimer);
+        cancelRequest('timeout');
+      }
+    }, 1000);
+
+    // listen for changes on this request doc
+    requestUnsub = docRef.onSnapshot(snap => {
+      if (!snap.exists) return;
+      const d = snap.data();
+      if (!d || !d.status) return;
+      if (d.status === 'approved') {
+        clearInterval(countdownTimer);
+        waitingEl.style.display = 'none';
+        statusEl.textContent = 'Approved — redirecting to admin panel...';
+        // redirect to admin (you can change the path)
+        setTimeout(()=> window.location.href = 'admin.html', 800);
+      } else if (d.status === 'denied') {
+        clearInterval(countdownTimer);
+        waitingEl.style.display = 'none';
+        statusEl.textContent = 'Denied by owner. You are signed out.';
+        // sign out
+        setTimeout(()=> {
+          auth.signOut();
+          if (requestUnsub) requestUnsub(); requestUnsub = null;
+        }, 1200);
+      }
+    });
+  }
+
+  async function cancelRequest(reason) {
+    if (!currentRequestDocId) return;
+    try {
+      // mark cancelled locally - we will delete client doc to free space
+      const docRef = db.collection('loginRequests').doc(currentRequestDocId);
+      // try delete (client allowed to delete its own pending request by rule)
+      await docRef.delete().catch(e=>console.warn('delete request failed', e));
+    } catch(e) { console.error(e); }
+    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    waitingEl.style.display = 'none';
+    statusEl.textContent = reason === 'timeout' ? 'Request timed out.' : 'Request cancelled.';
+    currentRequestDocId = null;
+    if (requestUnsub) { requestUnsub(); requestUnsub = null; }
+  }
+
+  cancelBtn.addEventListener('click', ()=> cancelRequest('cancelled'));
+
+  // Sign in handler
+  signinBtn.addEventListener('click', async () => {
+    const email = emailIn.value.trim();
+    const pass = passIn.value;
+    if (!email || !pass) { statusEl.textContent = 'Enter email and password.'; return; }
+
+    statusEl.textContent = 'Signing in...';
+    try {
+      const res = await auth.signInWithEmailAndPassword(email, pass);
+      const user = res.user;
+      statusEl.textContent = 'Signed in — requesting owner approval...';
+      // Create login request and wait
+      await createLoginRequest(user);
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = 'Sign in failed: ' + (err.message || err);
+    }
+  });
+
+  // If user already signed in, optional: show sign out and allow retry
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      statusEl.textContent = 'Signed in as ' + user.email;
+    } else {
+      // no-op
+    }
+  });
+
+  </script>
+</body>
+</html>
