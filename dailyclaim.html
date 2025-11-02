@@ -1,774 +1,372 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <link rel="icon" type="image/png" href="logo.fw.jpeg">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Eren Daily claims</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Daily Claims — Eren Panel</title>
   <style>
-    /* General Styles */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html, body {
-      height: 100%;
-      width: 100%;
-      font-family: 'Poppins', sans-serif;
-      overflow: hidden;
-    }
-
-    /* Preloader */
-    #preloader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: black;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      transition: opacity 0.5s ease;
-    }
-
-    #preloader video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    /* Main Content */
-    #main-content {
-      display: none;
-      height: 100%;
-      width: 100%;
-      overflow-x: hidden;
-      color: white;
-      text-align: center;
-    }
-
-    video.background-video {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: -1;
-      opacity: 0.6;
-    }
-
-    h1 {
-      font-family: 'Lucida Sans Regular';
-      text-align: center;
-      font-size: clamp(2rem, 5vw, 4rem);
-      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
-      margin-top: 12%;
-    }
-
-    p {
-      font-size: clamp(1rem, 3vw, 1.5rem);
-      margin-top: 1rem;
-      text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
-    }
-
-    /* Centered Ads Overlay */
-  /* General Styles for Ads */
-  #center-ad-wrapper {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    z-index: 9999;
-  }
-
-  #center-ad {
-    width: min(92vw, 760px);
-    background: #0f1724;
-    color: #fff;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
-    overflow: hidden;
-    pointer-events: auto;
-    position: relative;
-  }
-
-  #ad-close {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(0, 0, 0, 0.35);
-    border: none;
-    color: #fff;
-    font-size: 18px;
-    padding: 6px 9px;
-    border-radius: 6px;
-    cursor: pointer;
-    z-index: 10;
-  }
-
-  .ad-viewport {
-    overflow: hidden;
-  }
-
-  .ad-track {
-    display: flex;
-    transition: transform 450ms ease-in-out;
-  }
-
-  .ad-slide {
-    min-width: 100%;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    flex-direction: column; /* Stack content vertically for better mobile layout */
-  }
-
-  .ad-slide img {
-    max-width: 100%;
-    max-height: 80vh; /* Ensure the image doesn't exceed the viewport height */
-    border-radius: 8px;
-    height: auto; /* Maintain aspect ratio */
-  }
-
-  .ad-slide video {
-    width: 100%;
-    max-height: 80vh; /* Ensure the video doesn't exceed the viewport height */
-    border-radius: 8px;
-    display: block;
-  }
-
-  #ad-dots {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    padding: 10px 0;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.0), rgba(0, 0, 0, 0.06));
-  }
-
-  .ad-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.35);
-    cursor: pointer;
-  }
-
-  .ad-dot.active {
-    background: #ffd166;
-  }
-
-  /* Mobile-Friendly Styles */
-  @media (max-width: 768px) {
-    #center-ad {
-      width: 90%;
-      border-radius: 8px;
-    }
-
-    .ad-slide {
-      padding: 10px;
-      flex-direction: column; /* Stack content vertically */
-    }
-
-    .ad-slide img,
-    .ad-slide video {
-      max-width: 100%;
-      max-height: 70vh; /* Adjust for smaller screens */
-      height: auto;
-    }
-
-    #ad-close {
-      font-size: 16px;
-      padding: 4px 6px;
-    }
-  }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Daily Claims</h1>
-  </header>
-
-  <style>
-    /* General Styles */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html, body {
-      height: 100%;
-      width: 100%;
-      font-family: 'Poppins', sans-serif;
-      color: #eef6ff;
-    }
-
-    .wrap {
-      max-width: 820px;
-      margin: 14px auto;
-      padding: 12px;
-    }
-
-    .card {
-      background: #1a233a;
-      border-radius: 10px;
-      padding: 16px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-    }
-
-    h3 {
-      margin-bottom: 10px;
-    }
-
-    .label {
-      color: #9fbddf;
-      font-size: 13px;
-      width: 120px;
-      display: inline-block;
-    }
-
-    .value {
-      font-weight: 700;
-      display: inline-block;
-    }
-
-    .blurred {
-      filter: blur(6px);
-      transition: filter 0.3s;
-      user-select: none;
-      pointer-events: none;
-    }
-
-    .unblur {
-      filter: none;
-      pointer-events: auto;
-    }
-
-    .meta {
-      margin-top: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      color: #9fbddf;
-      font-size: 13px;
-    }
-
-    .countdown {
-      font-weight: 800;
-      color: #ffd166;
-      font-size: 16px;
-    }
-
-    a.smalllink {
-      color: #9fd6ff;
-      text-decoration: underline;
-    }
-
-    .empty {
-      text-align: center;
-      color: #9fbddf;
-      padding: 18px;
-    }
+    :root { --bg:#071022; --card:#0f1724; --muted:#9fbddf; --accent:#ffd166; }
+    body{margin:0;font-family:Poppins,system-ui,Arial;background:var(--bg);color:#eaf6ff}
+    .wrap{max-width:980px;margin:24px auto;padding:18px}
+    .card{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+    h1{margin:0 0 12px}
+    .fields{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    .label{color:var(--muted);font-size:13px}
+    .value{font-weight:800}
+    .blurred{filter:blur(6px);user-select:none;pointer-events:none}
+    .unblur{filter:none;pointer-events:auto}
+    .meta{display:flex;justify-content:space-between;align-items:center;margin-top:12px;color:var(--muted)}
+    .countdown{font-weight:800;color:var(--accent)}
+    a.link { color:#9fd6ff; text-decoration:underline }
+    /* ad overlay */
+    #ad-overlay { position:fixed; inset:0; display:flex;align-items:center;justify-content:center; z-index:20000; pointer-events:none; }
+    #ad-card { width:min(92vw,760px); background:#081226; border-radius:12px; padding:12px; pointer-events:auto; box-shadow:0 18px 60px rgba(0,0,0,.7) }
+    #ad-close { position:absolute; top:8px; right:10px; background:rgba(0,0,0,.35); border:none; color:#fff; font-size:18px; padding:6px 8px; border-radius:6px; cursor:pointer }
+    .ad-content img, .ad-content video { width:100%; height:auto; border-radius:8px; display:block; }
+    .ad-text { color:#fff; font-size:16px; padding:6px 0; }
+    /* small */
+    .small { color:var(--muted); font-size:13px }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="card" id="daily-card">
-      <h3>Daily Panel Reveal</h3>
-      <p class="muted" id="desc">A new panel unblurs for 5 minutes every 12 hours.</p>
+    <div class="card">
+      <h1>Daily Panel Reveal</h1>
+      <p class="small">Panels unblur for 5 minutes every 12 hours (server time). Ads appear periodically and are synced from admin.</p>
 
-      <div id="no-panels" class="empty" style="display:none;">No panels available right now.</div>
+      <div id="no-panels" class="small" style="display:none">No panels available right now.</div>
 
-      <div id="creds" style="display:none;">
-        <div><span class="label">Email</span><span id="d-email" class="value blurred">********@***.***</span></div>
-        <div style="margin-top:8px;"><span class="label">Password</span><span id="d-pass" class="value blurred">********</span></div>
-        <div style="margin-top:8px;"><span class="label">Panel URL</span><span id="d-url" class="value blurred">https://*****</span></div>
+      <div id="panel-card" style="display:none">
+        <div><span class="label">Email</span> <span id="d-email" class="value blurred">********@***.***</span></div>
+        <div style="margin-top:8px"><span class="label">Password</span> <span id="d-pass" class="value blurred">********</span></div>
+        <div style="margin-top:8px"><span class="label">Panel URL</span> <span id="d-url" class="value blurred">https://*****</span></div>
 
-        <div class="meta" style="margin-top:14px;">
+        <div class="meta">
           <div>Next reveal in <span id="countdown" class="countdown">--:--:--</span></div>
-          <div class="small">Visible for <span id="dur" class="countdown">05:00</span></div>
+          <div class="small">Visible for <span id="dur">05:00</span></div>
         </div>
       </div>
-
-      <div style="margin-top:12px;">
-        <a href="admin.html" class="smalllink" target="_blank">Admin (manage panels)</a>
-      </div>
     </div>
   </div>
 
-  <script>
-    (function () {
-      const KEY_CLAIMS = 'daily_claims';
-      const KEY_META = 'daily_meta';
-  
-      const noPanels = document.getElementById('no-panels');
-      const creds = document.getElementById('creds');
-      const emailEl = document.getElementById('d-email');
-      const passEl = document.getElementById('d-pass');
-      const urlEl = document.getElementById('d-url');
-      const countdownEl = document.getElementById('countdown');
-      const durationEl = document.getElementById('dur');
-  
-      const REVEAL_INTERVAL = 12 * 3600 * 1000; // 12 hours in milliseconds
-      const REVEAL_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
-  
-      function loadClaims() {
-        try {
-          return JSON.parse(localStorage.getItem(KEY_CLAIMS)) || [];
-        } catch (e) {
-          console.error('Failed to load claims:', e);
-          return [];
-        }
-      }
-  
-      function formatHMS(sec) {
-        sec = Math.max(0, Math.floor(sec));
-        const h = Math.floor(sec / 3600).toString().padStart(2, '0');
-        const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
-        const s = (sec % 60).toString().padStart(2, '0');
-        return `${h}:${m}:${s}`;
-      }
-  
-      function showPanel(panel) {
-        emailEl.textContent = panel.email || '—';
-        passEl.textContent = panel.password || '—';
-        if (panel.panel_url) {
-          urlEl.innerHTML = `<a href="${panel.panel_url}" target="_blank" rel="noreferrer">${panel.panel_url}</a>`;
-        } else {
-          urlEl.textContent = '—';
-        }
-      }
-  
-      function applyBlur(state) {
-        if (state === 'unblur') {
-          emailEl.classList.remove('blurred');
-          passEl.classList.remove('blurred');
-          urlEl.classList.remove('blurred');
-        } else {
-          emailEl.classList.add('blurred');
-          passEl.classList.add('blurred');
-          urlEl.classList.add('blurred');
-        }
-      }
-  
-      function tick() {
-        const claims = loadClaims();
-        if (!claims.length) {
-          noPanels.style.display = 'block';
-          creds.style.display = 'none';
-          return;
-        }
-  
-        noPanels.style.display = 'none';
-        creds.style.display = 'block';
-  
-        const now = Date.now();
-        const lastReveal = Math.floor(now / REVEAL_INTERVAL) * REVEAL_INTERVAL; // Last 12-hour mark
-        const nextReveal = lastReveal + REVEAL_INTERVAL; // Next 12-hour mark
-        const revealEnd = lastReveal + REVEAL_DURATION; // End of the 5-minute reveal window
-  
-        const panel = claims[0]; // Always show the first panel for simplicity
-        showPanel(panel);
-  
-        if (now >= lastReveal && now < revealEnd) {
-          applyBlur('unblur');
-          const secsLeft = Math.ceil((revealEnd - now) / 1000);
-          countdownEl.textContent = formatHMS(secsLeft);
-        } else {
-          applyBlur('blur');
-          const secsToReveal = Math.ceil((nextReveal - now) / 1000);
-          countdownEl.textContent = formatHMS(secsToReveal);
-        }
-      }
-  
-      tick();
-      setInterval(tick, 1000);
-    })();
-  </script>
-<style>
-  /* Center the image button */
-  .image-button-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh; /* Full viewport height */
-    text-align: center;
-  }
-
-  .image-button-wrapper img {
-    height: auto;
-    width: 50px;
-    border: 2px solid #0f0f0f;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .image-button-wrapper img:hover {
-    transform: scale(1.1); /* Slight zoom effect on hover */
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-  }
-
-  /* Mobile-friendly adjustments */
-  @media (max-width: 768px) {
-    .image-button-wrapper img {
-      width: 40px; /* Slightly smaller on mobile */
-    }
-  }
-</style>
-higashide kei
-<div class="image-button-wrapper">
-  <a href="index.html">
-    <img src="left.fw.png" alt="Homepage">
-  </a>
-</div>
-    </body>
-
-  <p style="color: black;">User</p>
-  <!-- Preloader -->
-  <div id="preloader">
-    <video id="introVideo" autoplay muted loop playsinline>
-      <source src="https://files.catbox.moe/hdm9jl.mp4" type="video/mp4">
-    </video>
-  </div>
-
-  <!-- Main Content -->
-  <div id="main-content">
-    <video id="background-video" class="background-video" autoplay muted loop playsinline>
-      <source src="" type="video/mp4">
-    </video>
-
-    <audio id="background-audio" loop>
-      <source src="https://files.catbox.moe/vilc0l.mp3" type="audio/mpeg">
-    </audio>
-  </div>
-
-  <!-- Centered Ads Overlay -->
-  <div id="center-ad-wrapper" style="display:none;">
-    <div id="center-ad" role="dialog" aria-label="Advertisement">
+  <!-- ad overlay (hidden by default) -->
+  <div id="ad-overlay" style="display:none">
+    <div id="ad-card" role="dialog" aria-label="Advertisement">
       <button id="ad-close" aria-label="Close ad">✕</button>
-      <div class="ad-viewport">
-        <div class="ad-track" id="ad-track"></div>
-      </div>
-      <div id="ad-dots"></div>
+      <div class="ad-content" id="ad-content"></div>
+      <div style="margin-top:8px;text-align:center" id="ad-caption"></div>
     </div>
   </div>
 
-  
+  <!-- firebase compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
   <script>
-    /* Preloader Logic */
-    const preloader = document.getElementById('preloader');
-    const mainContent = document.getElementById('main-content');
-    const introVideo = document.getElementById('introVideo');
+  /***********************
+   * Configuration
+   ***********************/
+  const firebaseConfig = {
+    apiKey: "AIzaSyAXZQi1Wdwf7oHRVapWNGgcCYtd4Dy5kQk",
+    authDomain: "eren-c4b30.firebaseapp.com",
+    projectId: "eren-c4b30",
+    storageBucket: "eren-c4b30.appspot.com",
+    messagingSenderId: "91279547740",
+    appId: "1:91279547740:web:11cc9f1eb5423f94993599",
+    measurementId: "G-LPF98ZZ527"
+  };
 
-    setTimeout(() => {
-      preloader.style.opacity = '0';
-    }, 9500);
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-    setTimeout(() => {
-      introVideo.pause();
-      preloader.style.display = 'none';
-      mainContent.style.display = 'block';
-      document.body.style.overflow = 'auto';
-    }, 10000);
+  // serverOffset to align client clocks to server
+  let serverOffset = 0; // ms (serverTime - localTime)
 
-    /* Background Video */
-    const videos = [
-      "https://files.catbox.moe/jcx8d5.mp4",
-      "https://files.catbox.moe/5dmrq1.mp4"
-    ];
-
-    const randomVideo = videos[Math.floor(Math.random() * videos.length)];
-    const bgVideo = document.getElementById("background-video");
-    bgVideo.querySelector("source").src = randomVideo;
-    bgVideo.setAttribute("playsinline", "true");
-    bgVideo.setAttribute("muted", "true");
-    bgVideo.setAttribute("autoplay", "true");
-    bgVideo.setAttribute("loop", "true");
-    bgVideo.load();
-
-    bgVideo.onerror = () => {
-      console.error("Background video failed to load.");
-    };
-
-    /* Background Audio */
-    const audio = document.getElementById("background-audio");
-
-    const playAudio = () => {
-      audio.play().catch(err => {
-        console.log("Autoplay blocked. Waiting for user interaction.");
-        document.addEventListener("click", playAudioOnce);
-        document.addEventListener("touchstart", playAudioOnce);
-      });
-    };
-
-    const playAudioOnce = () => {
-      audio.play().then(() => {
-        console.log("Audio playback started after user interaction.");
-        document.removeEventListener("click", playAudioOnce);
-        document.removeEventListener("touchstart", playAudioOnce);
-      }).catch(err => console.log("Audio playback failed:", err));
-    };
-
-    audio.addEventListener("canplaythrough", playAudio);
-
-    (function () {
-    const AdStore = {
-      loadAds: () => {
-        try {
-          const ads = JSON.parse(localStorage.getItem('ads')) || [];
-          return ads;
-        } catch (e) {
-          console.error('Failed to load ads from localStorage:', e);
-          return [];
-        }
-      },
-    };
-
-    const wrapper = document.getElementById('center-ad-wrapper');
-    const track = document.getElementById('ad-track');
-    const dots = document.getElementById('ad-dots');
-    const closeBtn = document.getElementById('ad-close');
-
-    let ads = [];
+  /***********************
+   * SERVER TIME SYNC
+   * We write a doc with serverTimestamp then read it back to compute offset.
+   ***********************/
+  async function syncServerTime() {
     try {
-      ads = AdStore.loadAds();
+      const ref = db.collection('serverTime').doc('now');
+      // write server timestamp
+      await ref.set({ ts: firebase.firestore.FieldValue.serverTimestamp() });
+      // read back
+      const snap = await ref.get();
+      const data = snap.data();
+      if (!data || !data.ts) {
+        console.warn('Server timestamp not yet available — using local time fallback.');
+        serverOffset = 0;
+        return;
+      }
+      const serverMs = data.ts.toDate().getTime();
+      serverOffset = serverMs - Date.now();
+      console.log('Server time synced. Offset (ms):', serverOffset);
     } catch (e) {
-      ads = [];
+      console.error('Time sync failed, using local time:', e);
+      serverOffset = 0;
     }
+  }
 
-    if (!ads || !ads.length) {
-      wrapper.style.display = 'none';
+  // run sync once on load, then refresh every 5 minutes to reduce drift
+  syncServerTime();
+  setInterval(syncServerTime, 5 * 60 * 1000);
+
+  /***********************
+   * PANELS logic
+   ***********************/
+  const KEY_CLAIMS = 'daily_claims'; // local backup if you ever want it
+  let panels = []; // array of panel objects { email, password, panel_url, createdAt }
+
+  const elNoPanels = document.getElementById('no-panels');
+  const elPanelCard = document.getElementById('panel-card');
+  const elEmail = document.getElementById('d-email');
+  const elPass = document.getElementById('d-pass');
+  const elUrl = document.getElementById('d-url');
+  const elCountdown = document.getElementById('countdown');
+  const elDur = document.getElementById('dur');
+
+  // load from Firestore in real-time and keep local panels array updated
+  db.collection('panels').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+    panels = snapshot.docs.map(doc => {
+      const d = doc.data();
+      return { id: doc.id, email: d.email || '', password: d.password || '', panel_url: d.panel_url || '', createdAt: d.createdAt || null };
+    });
+    // update UI immediately
+    renderPanel();
+  }, err => {
+    console.error('Failed to load panels:', err);
+  });
+
+  function renderPanel() {
+    if (!panels.length) {
+      elNoPanels.style.display = 'block';
+      elPanelCard.style.display = 'none';
       return;
     }
+    elNoPanels.style.display = 'none';
+    elPanelCard.style.display = 'block';
+    showPanel(panels[0]);
+  }
 
-    const MAX_DISPLAY = 3;
-    if (ads.length > MAX_DISPLAY) ads = ads.slice(0, MAX_DISPLAY);
+  function showPanel(panel) {
+    elEmail.textContent = panel.email || '—';
+    elPass.textContent = panel.password || '—';
+    elUrl.innerHTML = panel.panel_url ? `<a class="link" href="${panel.panel_url}" target="_blank" rel="noreferrer">${panel.panel_url}</a>` : '—';
+  }
 
-    let current = 0;
-    const INTERVAL = 3000;
-    let timer = null;
+  function formatHMS(seconds) {
+    seconds = Math.max(0, Math.floor(seconds));
+    const h = Math.floor(seconds / 3600).toString().padStart(2,'0');
+    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2,'0');
+    const s = (seconds % 60).toString().padStart(2,'0');
+    return `${h}:${m}:${s}`;
+  }
 
-    function buildSlides() {
-  track.innerHTML = '';
-  ads.forEach((ad) => {
-    const slide = document.createElement('div');
-    slide.className = 'ad-slide';
+  // Reveal schedule: every 12 hours, for 5 minutes.
+  const REVEAL_INTERVAL = 12 * 3600 * 1000; // 12 hours in ms
+  const REVEAL_DURATION = 5 * 60 * 1000; // 5 minutes in ms
+
+  function tickPanels() {
+    // use server-corrected "now"
+    const now = Date.now() + serverOffset;
+    if (!panels.length) {
+      elNoPanels.style.display = 'block';
+      elPanelCard.style.display = 'none';
+      return;
+    }
+    elNoPanels.style.display = 'none';
+    elPanelCard.style.display = 'block';
+
+    // align reveals to multiples of REVEAL_INTERVAL since epoch
+    const lastReveal = Math.floor(now / REVEAL_INTERVAL) * REVEAL_INTERVAL;
+    const revealEnd = lastReveal + REVEAL_DURATION;
+    const nextReveal = lastReveal + REVEAL_INTERVAL;
+
+    if (now >= lastReveal && now < revealEnd) {
+      // currently in reveal window -> unblur
+      elEmail.classList.remove('blurred'); elEmail.classList.add('unblur');
+      elPass.classList.remove('blurred'); elPass.classList.add('unblur');
+      elUrl.classList.remove('blurred'); elUrl.classList.add('unblur');
+
+      const secsLeft = Math.ceil((revealEnd - now) / 1000);
+      elCountdown.textContent = formatHMS(secsLeft);
+    } else {
+      // not in reveal -> blur
+      elEmail.classList.add('blurred'); elEmail.classList.remove('unblur');
+      elPass.classList.add('blurred'); elPass.classList.remove('unblur');
+      elUrl.classList.add('blurred'); elUrl.classList.remove('unblur');
+
+      const secsToReveal = Math.ceil((nextReveal - now) / 1000);
+      elCountdown.textContent = formatHMS(secsToReveal);
+    }
+  }
+
+  // run tickPanels every second
+  setInterval(tickPanels, 1000);
+  tickPanels();
+
+  /***********************
+   * ADS logic
+   ***********************/
+  let ads = []; // live array of ads from Firestore
+  const adOverlay = document.getElementById('ad-overlay');
+  const adContent = document.getElementById('ad-content');
+  const adCaption = document.getElementById('ad-caption');
+  const adClose = document.getElementById('ad-close');
+
+  let adTimer = null;
+  let nextAdTimeout = null;
+
+  // Settings
+  const FIRST_AD_DURATION = 10 * 1000; // 10 seconds on initial load
+  const REAPPEAR_MIN = 30 * 1000; // 30s
+  const REAPPEAR_MAX = 90 * 1000; // 90s
+
+  // helper: shuffle array (Fisher-Yates)
+  function shuffleInPlace(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+
+  // subscribe to advertisements collection
+  db.collection('advertisements').orderBy('createdAt','desc').onSnapshot(snapshot => {
+    ads = snapshot.docs.map(doc => {
+      const d = doc.data();
+      return { id: doc.id, type: d.type, payload: d.payload, meta: d.meta || {}, createdAt: d.createdAt || null };
+    });
+    // start showing an ad on first load only if overlay currently hidden
+    if (ads.length && adOverlay.style.display === 'none') {
+      // show immediately for 10s
+      showAdOnce(FIRST_AD_DURATION);
+    }
+  }, err => {
+    console.error('Failed to load ads:', err);
+  });
+
+  // Render a given ad object into overlay
+  function renderAd(ad) {
+    adContent.innerHTML = '';
+    adCaption.textContent = '';
+    if (!ad) return;
 
     if (ad.type === 'text') {
-      // Create a container for text ads
-      const textContainer = document.createElement('div');
-      textContainer.style.color = '#fff';
-      textContainer.style.textAlign = 'center';
-      textContainer.style.padding = '20px';
-
-      // Add title if available
-      if (ad.meta.title) {
-        const title = document.createElement('h3');
-        title.textContent = ad.meta.title;
-        title.style.marginBottom = '10px';
-        textContainer.appendChild(title);
-      }
-
-      // Add the main text content
-      const textContent = document.createElement('p');
-      textContent.textContent = ad.payload;
-      textContainer.appendChild(textContent);
-
-      // Add a link if available
-      if (ad.meta.link) {
-        const link = document.createElement('a');
-        link.href = ad.meta.link;
-        link.textContent = 'Learn more';
-        link.target = '_blank';
-        link.style.display = 'block';
-        link.style.marginTop = '10px';
-        link.style.color = '#ffd166';
-        textContainer.appendChild(link);
-      }
-
-      slide.appendChild(textContainer);
+      const p = document.createElement('div');
+      p.className = 'ad-text';
+      p.textContent = ad.payload || '';
+      adContent.appendChild(p);
     } else if (ad.type === 'image') {
-      const link = document.createElement('a');
-      link.href = ad.meta.link || '#';
-      link.target = '_blank';
-      link.rel = 'noreferrer';
-      link.innerHTML = `<img src="${ad.payload}" alt="${ad.meta.title || 'Ad'}">`;
-
-      // Add text below the image
-      const text = document.createElement('p');
-      text.textContent = ad.meta.title || '';
-      text.style.color = '#fff';
-      text.style.textAlign = 'center';
-      text.style.marginTop = '10px';
-
-      slide.appendChild(link);
-      slide.appendChild(text);
+      const a = document.createElement('a');
+      a.href = ad.meta?.link || '#';
+      a.target = '_blank';
+      a.rel = 'noreferrer';
+      const img = document.createElement('img');
+      img.src = ad.payload || '';
+      img.alt = ad.meta?.title || 'Ad';
+      a.appendChild(img);
+      adContent.appendChild(a);
     } else if (ad.type === 'video') {
-      const videoWrapper = document.createElement('div');
-      videoWrapper.style.position = 'relative';
-
-      const video = document.createElement('video');
-      video.setAttribute('playsinline', 'true');
-      video.setAttribute('muted', 'true');
-      video.setAttribute('preload', 'metadata');
-      video.setAttribute('controls', 'true');
-      video.innerHTML = `<source src="${ad.payload}" type="video/mp4">`;
-
-      const link = document.createElement('a');
-      link.href = ad.meta.link || '#';
-      link.target = '_blank';
-      link.rel = 'noreferrer';
-      link.style.position = 'absolute';
-      link.style.inset = '0';
-      link.style.zIndex = '10';
-
-      videoWrapper.appendChild(video);
-      videoWrapper.appendChild(link);
-      slide.appendChild(videoWrapper);
+      // payload could be mp4 url or youtube link
+      const isYouTube = /youtube\.com|youtu\.be/.test(ad.payload || '');
+      if (isYouTube) {
+        // parse id
+        const match = ad.payload.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+        const vId = match ? match[1] : null;
+        if (vId) {
+          const iframe = document.createElement('iframe');
+          iframe.width = '100%';
+          iframe.height = '420';
+          iframe.src = 'https://www.youtube.com/embed/' + vId + '?rel=0';
+          iframe.frameBorder = '0';
+          iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+          iframe.allowFullscreen = true;
+          adContent.appendChild(iframe);
+        } else {
+          const p = document.createElement('div'); p.textContent = 'Invalid YouTube link'; adContent.appendChild(p);
+        }
+      } else {
+        const a = document.createElement('a');
+        a.href = ad.meta?.link || '#';
+        a.target = '_blank';
+        a.rel = 'noreferrer';
+        const v = document.createElement('video');
+        v.src = ad.payload || '';
+        v.controls = true;
+        v.autoplay = false;
+        v.style.width = '100%';
+        a.appendChild(v);
+        adContent.appendChild(a);
+      }
     }
 
-    track.appendChild(slide);
+    if (ad.meta && ad.meta.title) adCaption.textContent = ad.meta.title;
+  }
+
+  // show overlay for given ms, then hide
+  function showAdForMs(ms, adObj) {
+    if (!adObj) return;
+    renderAd(adObj);
+    adOverlay.style.display = 'flex';
+    // clear any existing timers
+    if (adTimer) { clearTimeout(adTimer); adTimer = null; }
+    if (nextAdTimeout) { clearTimeout(nextAdTimeout); nextAdTimeout = null; }
+
+    adTimer = setTimeout(() => {
+      hideAd();
+      scheduleNextAdRandom();
+    }, ms);
+  }
+
+  // hide immediately
+  function hideAd() {
+    adOverlay.style.display = 'none';
+    adContent.innerHTML = '';
+    adCaption.textContent = '';
+    if (adTimer) { clearTimeout(adTimer); adTimer = null; }
+  }
+
+  adClose.addEventListener('click', () => {
+    hideAd();
+    scheduleNextAdRandom();
   });
-  wrapper.style.display = 'flex';
-}
 
-    function updateSlide() {
-      track.style.transform = `translateX(${-current * 100}%)`;
-      [...dots.children].forEach((dot, i) => dot.classList.toggle('active', i === current));
+  // show one ad now (choose random ad)
+  function showAdOnce(durationMs = FIRST_AD_DURATION) {
+    if (!ads.length) return;
+    const shuffled = [...ads];
+    shuffleInPlace(shuffled);
+    const ad = shuffled[0];
+    showAdForMs(durationMs, ad);
+  }
+
+  // schedule a next ad at random delay between REAPPEAR_MIN and REAPPEAR_MAX
+  function scheduleNextAdRandom() {
+    if (!ads.length) return;
+    const delay = REAPPEAR_MIN + Math.floor(Math.random() * (REAPPEAR_MAX - REAPPEAR_MIN));
+    if (nextAdTimeout) { clearTimeout(nextAdTimeout); nextAdTimeout = null; }
+    nextAdTimeout = setTimeout(() => {
+      // choose a random ad and show for 10s (could be customized)
+      const shuffled = [...ads];
+      shuffleInPlace(shuffled);
+      // if multiple ads, show them in rotation quickly (shuffle ensures random order)
+      showAdForMs(10000, shuffled[0]);
+    }, delay);
+  }
+
+  // If ads already loaded on page open, show initial ad
+  // (if ads arrive later onSnapshot they trigger show inside onSnapshot)
+  // Use a small timeout to ensure serverOffset may have been calculated (optional)
+  setTimeout(() => {
+    if (ads.length) showAdOnce(FIRST_AD_DURATION);
+    else {
+      // no ads yet — will show when snapshot arrives
     }
+    // schedule next regardless so ad loop is running
+    scheduleNextAdRandom();
+  }, 1000);
 
-    function nextSlide() {
-      current = (current + 1) % ads.length;
-      updateSlide();
-    }
-
-    function startTimer() {
-      timer = setInterval(nextSlide, INTERVAL);
-    }
-
-    function stopTimer() {
-      clearInterval(timer);
-    }
-
-    closeBtn.addEventListener('click', () => {
-      stopTimer();
-      wrapper.style.display = 'none';
-    });
-
-    buildSlides();
-    startTimer();
-  })();
   </script>
-
-  <!-- ===== Fancy Floating Contact Buttons ===== -->
-<style>
-  .contact-float {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    z-index: 9999;
-  }
-
-  .contact-float a {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    background: linear-gradient(135deg, #0f1724 0%, #0b1220 100%);
-    box-shadow: 0 0 20px rgba(0,0,0,0.5), 0 0 15px rgba(37,211,102,0.2);
-    text-decoration: none;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-
-  .contact-float a::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 60%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .contact-float a:hover::before {
-    opacity: 1;
-  }
-
-  .contact-float a:hover {
-    transform: scale(1.1) rotate(3deg);
-    box-shadow: 0 0 25px rgba(255,255,255,0.2), 0 0 30px var(--glow, rgba(255,255,255,0.3));
-  }
-
-  .contact-float svg {
-    width: 28px;
-    height: 28px;
-    fill: currentColor;
-    z-index: 2;
-  }
-
-  .whatsapp-float {
-    --glow: rgba(37,211,102,0.8);
-    background: linear-gradient(135deg, #25D366, #1ebe57);
-  }
-
-  .telegram-float {
-    --glow: rgba(0,136,204,0.8);
-    background: linear-gradient(135deg, #0088cc, #00a0e6);
-  }
-
-  /* Soft pulse animation */
-  @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 15px var(--glow, rgba(255,255,255,0.2)); }
-    50% { box-shadow: 0 0 25px var(--glow, rgba(255,255,255,0.6)); }
-  }
-  .contact-float a {
-    animation: pulse 2.4s infinite;
-  }
-</style>
-
-<div class="contact-float">
-  <!-- WhatsApp -->
-  <a href="https://wa.me/13603903303?text=Hello%20Admin%2C%20I%20need%20assistance" 
-     target="_blank" 
-     class="whatsapp-float" 
-     aria-label="Chat on WhatsApp">
-    <svg viewBox="0 0 24 24">
-      <path d="M20.5 3.5A11.9 11.9 0 0 0 12 1C6 1 1.5 5.5 1.5 11.5c0 2 .5 3.8 1.5 5.4L1 23l6.3-2.1c1.6.9 3.5 1.4 5.7 1.4 6 0 10.5-4.5 10.5-10.5 0-3-1.2-5.8-3.5-7.3z" fill="#fff"/>
-    </svg>
-  </a>
-
-  <!-- Telegram -->
-  <a href="https://t.me/@Er3n_2k7" 
-     target="_blank" 
-     class="telegram-float" 
-     aria-label="Message on Telegram">
-    <svg viewBox="0 0 24 24">
-      <path d="M22 2L2 9.2l5.6 2.1L9.6 20 13 14l6.9-9.3z" fill="#fff"/>
-    </svg>
-  </a>
-</div>
-
 </body>
 </html>
