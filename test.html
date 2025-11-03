@@ -177,7 +177,24 @@
       // no-op
     }
   });
+const user = firebase.auth().currentUser;
+const ref = firebase.database().ref(`pendingApprovals/${user.uid}`);
+await ref.set({ email: user.email, approved: false, checked: false });
 
+// Wait for admin approval
+ref.on("value", (snap) => {
+  const data = snap.val();
+  if (data && data.checked) {
+    if (data.approved) {
+      alert("✅ Login approved!");
+      window.location.href = "admin.html";
+    } else {
+      alert("❌ Login denied.");
+      firebase.auth().signOut();
+    }
+  }
+});
   </script>
 </body>
 </html>
+
